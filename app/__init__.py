@@ -1,0 +1,1 @@
+"""IDOT Bid Intelligence Platform"""

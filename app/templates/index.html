@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IDOT Bid Intelligence Platform</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f5f7fa;
+            color: #2c3e50;
+            line-height: 1.6;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem 1rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            transition: transform 0.2s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .stat-card h3 {
+            color: #667eea;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-card .value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #2c3e50;
+            margin: 0.5rem 0;
+        }
+
+        .stat-card .label {
+            color: #7f8c8d;
+            font-size: 0.9rem;
+        }
+
+        .search-section {
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            margin: 2rem 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .search-section h2 {
+            margin-bottom: 1.5rem;
+            color: #2c3e50;
+        }
+
+        .search-box {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .search-box input {
+            flex: 1;
+            padding: 0.8rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 4px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .search-box button {
+            padding: 0.8rem 2rem;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .search-box button:hover {
+            background: #5568d3;
+        }
+
+        .results {
+            margin-top: 2rem;
+        }
+
+        .result-card {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 4px;
+            margin-bottom: 1rem;
+            border-left: 4px solid #667eea;
+        }
+
+        .result-card h4 {
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+        }
+
+        .result-card .details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .result-card .detail-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .result-card .detail-label {
+            font-size: 0.85rem;
+            color: #7f8c8d;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .result-card .detail-value {
+            font-size: 1.1rem;
+            color: #2c3e50;
+            font-weight: 600;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: #7f8c8d;
+        }
+
+        .error {
+            background: #fee;
+            color: #c33;
+            padding: 1rem;
+            border-radius: 4px;
+            margin: 1rem 0;
+        }
+
+        .tab-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .tab-button {
+            padding: 0.8rem 1.5rem;
+            background: #f8f9fa;
+            border: 2px solid #e0e0e0;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .tab-button.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 2rem 1rem;
+            color: #7f8c8d;
+            margin-top: 4rem;
+        }
+
+        .api-links {
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            margin: 2rem 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .api-links h2 {
+            margin-bottom: 1rem;
+        }
+
+        .api-links a {
+            display: inline-block;
+            margin: 0.5rem 1rem 0.5rem 0;
+            padding: 0.5rem 1rem;
+            background: #667eea;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            transition: background 0.3s;
+        }
+
+        .api-links a:hover {
+            background: #5568d3;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="container">
+            <h1>🏗️ IDOT Bid Intelligence Platform</h1>
+            <p>Comprehensive construction bid pricing intelligence for Illinois</p>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Stats Dashboard -->
+        <div class="stats-grid" id="stats">
+            <div class="stat-card">
+                <h3>Loading...</h3>
+                <div class="value">—</div>
+                <div class="label">Platform Status</div>
+            </div>
+        </div>
+
+        <!-- Search Section -->
+        <div class="search-section">
+            <h2>Search Pricing Intelligence</h2>
+            
+            <div class="tab-buttons">
+                <button class="tab-button active" onclick="switchTab('payitem')">Pay Item</button>
+                <button class="tab-button" onclick="switchTab('contractor')">Contractor</button>
+            </div>
+
+            <div id="payitem-search">
+                <div class="search-box">
+                    <input type="text" id="payItemInput" placeholder="Enter pay code (e.g., 40603080)" />
+                    <button onclick="searchPayItem()">Search</button>
+                </div>
+            </div>
+
+            <div id="contractor-search" style="display: none;">
+                <div class="search-box">
+                    <input type="text" id="contractorInput" placeholder="Enter contractor name" />
+                    <button onclick="searchContractor()">Search</button>
+                </div>
+            </div>
+
+            <div id="results" class="results"></div>
+        </div>
+
+        <!-- API Documentation Links -->
+        <div class="api-links">
+            <h2>API Documentation</h2>
+            <p style="margin-bottom: 1rem; color: #7f8c8d;">
+                Access the full API documentation and interactive tools:
+            </p>
+            <a href="/docs" target="_blank">📚 Interactive API Docs (Swagger)</a>
+            <a href="/redoc" target="_blank">📖 API Reference (ReDoc)</a>
+            <a href="/api/status" target="_blank">🔍 Database Status</a>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>IDOT Bid Intelligence Platform v1.0 | Powered by FastAPI</p>
+        <p style="margin-top: 0.5rem; font-size: 0.9rem;">
+            © 2026 Campanella & Sons, Inc. | Data: IDOT & Municipal Contracts
+        </p>
+    </div>
+
+    <script>
+        // Load statistics on page load
+        async function loadStats() {
+            try {
+                const response = await fetch('/api/status');
+                const data = await response.json();
+                
+                if (data.status === 'connected') {
+                    const stats = data.statistics;
+                    const statsHtml = `
+                        <div class="stat-card">
+                            <h3>IDOT Contracts</h3>
+                            <div class="value">${stats.contracts.toLocaleString()}</div>
+                            <div class="label">Total Contracts</div>
+                        </div>
+                        <div class="stat-card">
+                            <h3>Contractor Bids</h3>
+                            <div class="value">${stats.contractor_bids.toLocaleString()}</div>
+                            <div class="label">Total Bids</div>
+                        </div>
+                        <div class="stat-card">
+                            <h3>Item-Level Bids</h3>
+                            <div class="value">${stats.item_bids.toLocaleString()}</div>
+                            <div class="label">Pricing Records</div>
+                        </div>
+                        <div class="stat-card">
+                            <h3>Municipal Data</h3>
+                            <div class="value">${stats.municipal_item_bids.toLocaleString()}</div>
+                            <div class="label">Lake County Bids</div>
+                        </div>
+                    `;
+                    document.getElementById('stats').innerHTML = statsHtml;
+                }
+            } catch (error) {
+                console.error('Error loading stats:', error);
+            }
+        }
+
+        function switchTab(tab) {
+            // Update button states
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            // Show/hide search boxes
+            document.getElementById('payitem-search').style.display = tab === 'payitem' ? 'block' : 'none';
+            document.getElementById('contractor-search').style.display = tab === 'contractor' ? 'block' : 'none';
+            
+            // Clear results
+            document.getElementById('results').innerHTML = '';
+        }
+
+        async function searchPayItem() {
+            const payCode = document.getElementById('payItemInput').value.trim();
+            if (!payCode) return;
+            
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '<div class="loading">Searching...</div>';
+            
+            try {
+                const response = await fetch(`/api/search/pay-item/${payCode}`);
+                if (!response.ok) throw new Error('Pay item not found');
+                
+                const data = await response.json();
+                
+                resultsDiv.innerHTML = `
+                    <div class="result-card">
+                        <h4>${data.pay_item} - ${data.description}</h4>
+                        <div class="details">
+                            <div class="detail-item">
+                                <span class="detail-label">Unit</span>
+                                <span class="detail-value">${data.unit}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">2025 Average</span>
+                                <span class="detail-value">$${data.pricing.weighted_average_2025?.toFixed(2) || 'N/A'}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">2026 Projection</span>
+                                <span class="detail-value">$${data.pricing.weighted_average_2026?.toFixed(2) || 'N/A'}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Trend</span>
+                                <span class="detail-value">${data.pricing.trend || 'N/A'}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Total Bids</span>
+                                <span class="detail-value">${data.statistics.total_bids?.toLocaleString()}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Price Range</span>
+                                <span class="detail-value">$${data.pricing.min_price?.toFixed(2)} - $${data.pricing.max_price?.toFixed(2)}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } catch (error) {
+                resultsDiv.innerHTML = `<div class="error">Error: ${error.message}</div>`;
+            }
+        }
+
+        async function searchContractor() {
+            const contractor = document.getElementById('contractorInput').value.trim();
+            if (!contractor) return;
+            
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '<div class="loading">Searching...</div>';
+            
+            try {
+                const response = await fetch(`/api/search/contractor/${encodeURIComponent(contractor)}`);
+                if (!response.ok) throw new Error('Contractor not found');
+                
+                const data = await response.json();
+                
+                let html = `
+                    <div class="result-card">
+                        <h4>📊 ${data.contractor} - Performance Summary</h4>
+                        <div class="details">
+                            <div class="detail-item">
+                                <span class="detail-label">Total IDOT Bids</span>
+                                <span class="detail-value">${data.statistics.total_idot_bids}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Wins</span>
+                                <span class="detail-value">${data.statistics.idot_wins}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Win Rate</span>
+                                <span class="detail-value">${data.statistics.win_rate}%</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Avg Bid Amount</span>
+                                <span class="detail-value">$${(data.statistics.avg_bid_amount || 0).toLocaleString('en-US', {maximumFractionDigits: 0})}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                if (data.idot_bids.length > 0) {
+                    html += `<div class="result-card"><h4>Recent IDOT Bids</h4>`;
+                    data.idot_bids.slice(0, 5).forEach(bid => {
+                        html += `
+                            <div style="padding: 0.5rem 0; border-bottom: 1px solid #e0e0e0;">
+                                ${bid.won ? '🏆' : '📋'} ${bid.contract} - $${bid.amount.toLocaleString()} 
+                                (${bid.date}) - ${bid.bidders} bidders
+                            </div>
+                        `;
+                    });
+                    html += `</div>`;
+                }
+                
+                resultsDiv.innerHTML = html;
+            } catch (error) {
+                resultsDiv.innerHTML = `<div class="error">Error: ${error.message}</div>`;
+            }
+        }
+
+        // Enter key support
+        document.getElementById('payItemInput')?.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') searchPayItem();
+        });
+        
+        document.getElementById('contractorInput')?.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') searchContractor();
+        });
+
+        // Load stats on page load
+        loadStats();
+    </script>
+</body>
+</html>
