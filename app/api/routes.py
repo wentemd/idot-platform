@@ -41,13 +41,16 @@ async def search_pay_item(pay_code: str):
             raise HTTPException(status_code=404, detail=f"Pay item {pay_code} not found")
         
         # Get 2026 projection if available
-        cursor.execute("""
-        SELECT projected_2026, yoy_change_pct
-        FROM price_inflation
-        WHERE pay_item = ?
-        """, (pay_code,))
-        
-        projection = cursor.fetchone()
+        projection = None
+        try:
+            cursor.execute("""
+            SELECT projected_2026, yoy_change_pct
+            FROM price_inflation
+            WHERE pay_item = ?
+            """, (pay_code,))
+            projection = cursor.fetchone()
+        except:
+            pass
         
         # Get recent bids
         cursor.execute("""
@@ -69,11 +72,9 @@ async def search_pay_item(pay_code: str):
             "pricing": {
                 "weighted_average_2025": result[3],
                 "weighted_average_2026": projection[0] if projection else None,
-                "inflation_factor": projection[1] if projection else None,
-                "trend": projection[2] if projection else None,
-                "min_price": result[7],
-                "max_price": result[8],
-                "std_dev": result[6]
+                "inflation_pct": projection[1] if projection else None,
+                "min_price": result[6],
+                "max_price": result[7]
             },
             "statistics": {
                 "total_quantity": result[4],
@@ -92,6 +93,7 @@ async def search_pay_item(pay_code: str):
     except HTTPException:
         raise
     except Exception as e:
+        conn.close()
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/search/contractor/{contractor_name}")
@@ -117,17 +119,20 @@ async def search_contractor(
         idot_bids = cursor.fetchall()
         
         # Municipal bids
-        cursor.execute("""
-        SELECT c.contract_number, b.contractor_name, c.letting_date,
-               b.total_bid, b.is_low_bidder, c.total_bids
-        FROM municipal_bids b
-        JOIN municipal_contracts c ON b.contract_id = c.contract_id
-        WHERE b.contractor_name LIKE ?
-        ORDER BY c.letting_date DESC
-        LIMIT ?
-        """, (f'%{contractor_name}%', limit))
-        
-        municipal_bids = cursor.fetchall()
+        municipal_bids = []
+        try:
+            cursor.execute("""
+            SELECT c.contract_number, b.contractor_name, c.letting_date,
+                   b.total_bid, b.is_low_bidder, c.total_bids
+            FROM municipal_bids b
+            JOIN municipal_contracts c ON b.contract_id = c.contract_id
+            WHERE b.contractor_name LIKE ?
+            ORDER BY c.letting_date DESC
+            LIMIT ?
+            """, (f'%{contractor_name}%', limit))
+            municipal_bids = cursor.fetchall()
+        except:
+            pass
         
         # Statistics
         cursor.execute("""
@@ -143,9 +148,9 @@ async def search_contractor(
         return {
             "contractor": contractor_name,
             "statistics": {
-                "total_idot_bids": stats[0],
-                "idot_wins": stats[1],
-                "win_rate": round(stats[1] / stats[0] * 100, 1) if stats[0] > 0 else 0,
+                "total_idot_bids": stats[0] or 0,
+                "idot_wins": stats[1] or 0,
+                "win_rate": round((stats[1] or 0) / stats[0] * 100, 1) if stats[0] and stats[0] > 0 else 0,
                 "avg_bid_amount": stats[2],
                 "total_municipal_bids": len(municipal_bids)
             },
@@ -172,6 +177,7 @@ async def search_contractor(
         }
         
     except Exception as e:
+        conn.close()
         raise HTTPException(status_code=500, detail=str(e))
 
 # ============================================================================
@@ -181,28 +187,19 @@ async def search_contractor(
 @router.get("/pricing/weighted-averages")
 async def get_weighted_averages(
     skip: int = 0,
-    limit: int = Query(100, le=500),
-    category: Optional[str] = None
+    limit: int = Query(100, le=500)
 ):
     """Get weighted average prices"""
     conn = get_db()
     cursor = conn.cursor()
     
     try:
-        if category:
-            # Filter by category (would need category field in DB)
-            cursor.execute("""
-            SELECT pay_item, description, unit, weighted_avg_price, total_bids
-            FROM weighted_avg_prices
-            LIMIT ? OFFSET ?
-            """, (limit, skip))
-        else:
-            cursor.execute("""
-            SELECT pay_item, description, unit, weighted_avg_price, total_bids
-            FROM weighted_avg_prices
-            ORDER BY total_bids DESC
-            LIMIT ? OFFSET ?
-            """, (limit, skip))
+        cursor.execute("""
+        SELECT pay_item, description, uom, weighted_avg_price, bid_count
+        FROM weighted_avg_prices
+        ORDER BY bid_count DESC
+        LIMIT ? OFFSET ?
+        """, (limit, skip))
         
         results = cursor.fetchall()
         
@@ -228,11 +225,11 @@ async def get_weighted_averages(
         }
         
     except Exception as e:
+        conn.close()
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/pricing/inflation-2026")
 async def get_inflation_projections(
-    trend: Optional[str] = None,
     limit: int = Query(100, le=500)
 ):
     """Get 2026 inflation projections"""
@@ -240,23 +237,12 @@ async def get_inflation_projections(
     cursor = conn.cursor()
     
     try:
-        if trend and trend.upper() in ['RISING', 'STABLE', 'FALLING']:
-            cursor.execute("""
-            SELECT pay_item, description, weighted_avg_2025, weighted_avg_2026,
-                   price_increase_pct, trend_category
-            FROM weighted_avg_2026
-            WHERE trend_category = ?
-            ORDER BY price_increase_pct DESC
-            LIMIT ?
-            """, (trend.upper(), limit))
-        else:
-            cursor.execute("""
-            SELECT pay_item, description, weighted_avg_2025, weighted_avg_2026,
-                   price_increase_pct, trend_category
-            FROM weighted_avg_2026
-            ORDER BY price_increase_pct DESC
-            LIMIT ?
-            """, (limit,))
+        cursor.execute("""
+        SELECT pay_item, description, price_2025, projected_2026, yoy_change_pct
+        FROM price_inflation
+        ORDER BY yoy_change_pct DESC
+        LIMIT ?
+        """, (limit,))
         
         results = cursor.fetchall()
         conn.close()
@@ -268,13 +254,13 @@ async def get_inflation_projections(
                     "description": r[1],
                     "price_2025": r[2],
                     "price_2026": r[3],
-                    "increase_pct": r[4],
-                    "trend": r[5]
+                    "increase_pct": r[4]
                 } for r in results
             ]
         }
         
     except Exception as e:
+        conn.close()
         raise HTTPException(status_code=500, detail=str(e))
 
 # ============================================================================
@@ -304,30 +290,25 @@ async def get_analytics_summary():
         stats['pay_items'] = cursor.fetchone()[0]
         
         # Municipal stats
-        cursor.execute("SELECT COUNT(*) FROM municipal_contracts")
-        stats['municipal_contracts'] = cursor.fetchone()[0]
-        
-        cursor.execute("SELECT COUNT(*) FROM municipal_item_bids")
-        stats['municipal_bids'] = cursor.fetchone()[0]
-        
-        # Price trends
-        cursor.execute("""
-        SELECT trend_category, COUNT(*)
-        FROM weighted_avg_2026
-        GROUP BY trend_category
-        """)
-        
-        trends = dict(cursor.fetchall())
+        try:
+            cursor.execute("SELECT COUNT(*) FROM municipal_contracts")
+            stats['municipal_contracts'] = cursor.fetchone()[0]
+            
+            cursor.execute("SELECT COUNT(*) FROM municipal_item_bids")
+            stats['municipal_bids'] = cursor.fetchone()[0]
+        except:
+            stats['municipal_contracts'] = 0
+            stats['municipal_bids'] = 0
         
         conn.close()
         
         return {
             "platform_stats": stats,
-            "price_trends_2026": trends,
             "last_updated": datetime.now().isoformat()
         }
         
     except Exception as e:
+        conn.close()
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/analytics/contractors/top")
@@ -358,14 +339,15 @@ async def get_top_contractors(limit: int = Query(20, le=50)):
                 {
                     "contractor": r[0],
                     "total_bids": r[1],
-                    "wins": r[2],
-                    "win_rate": round(r[2] / r[1] * 100, 1),
+                    "wins": r[2] or 0,
+                    "win_rate": round((r[2] or 0) / r[1] * 100, 1) if r[1] > 0 else 0,
                     "avg_bid": r[3]
                 } for r in results
             ]
         }
         
     except Exception as e:
+        conn.close()
         raise HTTPException(status_code=500, detail=str(e))
 
 # ============================================================================
@@ -374,7 +356,6 @@ async def get_top_contractors(limit: int = Query(20, le=50)):
 
 @router.get("/municipal/contracts")
 async def get_municipal_contracts(
-    agency: Optional[str] = None,
     limit: int = Query(50, le=200)
 ):
     """Get municipal contracts"""
@@ -382,23 +363,13 @@ async def get_municipal_contracts(
     cursor = conn.cursor()
     
     try:
-        if agency:
-            cursor.execute("""
-            SELECT contract_number, project_name, letting_date,
-                   total_bids, low_bid_amount, winning_contractor
-            FROM municipal_contracts
-            WHERE agency_id = ?
-            ORDER BY letting_date DESC
-            LIMIT ?
-            """, (agency, limit))
-        else:
-            cursor.execute("""
-            SELECT contract_number, project_name, letting_date,
-                   total_bids, low_bid_amount, winning_contractor
-            FROM municipal_contracts
-            ORDER BY letting_date DESC
-            LIMIT ?
-            """, (limit,))
+        cursor.execute("""
+        SELECT contract_number, project_name, letting_date,
+               total_bids, low_bid_amount, winning_contractor
+        FROM municipal_contracts
+        ORDER BY letting_date DESC
+        LIMIT ?
+        """, (limit,))
         
         results = cursor.fetchall()
         conn.close()
@@ -417,4 +388,5 @@ async def get_municipal_contracts(
         }
         
     except Exception as e:
+        conn.close()
         raise HTTPException(status_code=500, detail=str(e))
