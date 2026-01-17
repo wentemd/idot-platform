@@ -53,15 +53,18 @@ async def search_pay_item(pay_code: str):
             pass
         
         # Get recent bids
-        cursor.execute("""
-        SELECT contract_number, letting_date, unit_price, quantity
-        FROM item_bids
-        WHERE pay_item = ?
-        ORDER BY letting_date DESC
-        LIMIT 10
-        """, (pay_code,))
-        
-        recent_bids = cursor.fetchall()
+        recent_bids = []
+        try:
+            cursor.execute("""
+            SELECT contract_number, letting_date, unit_price, quantity
+            FROM item_bids
+            WHERE pay_item = ?
+            ORDER BY letting_date DESC
+            LIMIT 10
+            """, (pay_code,))
+            recent_bids = cursor.fetchall()
+        except:
+            pass
         
         conn.close()
         
@@ -109,7 +112,7 @@ async def search_contractor(
         # IDOT bids
         cursor.execute("""
         SELECT contract_number, contractor_name, letting_date, 
-               low_bid_amount, is_low_bidder, number_of_bidders
+               total_bid, is_low_bidder, bid_rank
         FROM contractor_bids
         WHERE contractor_name LIKE ?
         ORDER BY letting_date DESC
@@ -136,7 +139,7 @@ async def search_contractor(
         
         # Statistics
         cursor.execute("""
-        SELECT COUNT(*), SUM(is_low_bidder), AVG(low_bid_amount)
+        SELECT COUNT(*), SUM(is_low_bidder), AVG(total_bid)
         FROM contractor_bids
         WHERE contractor_name LIKE ?
         """, (f'%{contractor_name}%',))
@@ -161,7 +164,7 @@ async def search_contractor(
                     "date": bid[2],
                     "amount": bid[3],
                     "won": bool(bid[4]),
-                    "bidders": bid[5]
+                    "rank": bid[5]
                 } for bid in idot_bids
             ],
             "municipal_bids": [
@@ -323,7 +326,7 @@ async def get_top_contractors(limit: int = Query(20, le=50)):
             contractor_name,
             COUNT(*) as total_bids,
             SUM(is_low_bidder) as wins,
-            AVG(low_bid_amount) as avg_bid
+            AVG(total_bid) as avg_bid
         FROM contractor_bids
         GROUP BY contractor_name
         HAVING COUNT(*) >= 5
