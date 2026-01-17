@@ -42,8 +42,8 @@ async def search_pay_item(pay_code: str):
         
         # Get 2026 projection if available
         cursor.execute("""
-        SELECT weighted_avg_2026, inflation_factor, trend_category
-        FROM weighted_avg_2026
+        SELECT projected_2026, yoy_change_pct
+        FROM price_inflation
         WHERE pay_item = ?
         """, (pay_code,))
         
