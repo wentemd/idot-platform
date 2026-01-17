@@ -29,8 +29,8 @@ async def search_pay_item(pay_code: str):
     try:
         # Get weighted average pricing
         cursor.execute("""
-        SELECT pay_item, description, unit, weighted_avg_price, 
-               total_quantity, total_bids, stddev, min_price, max_price
+        SELECT pay_item, description, uom, weighted_avg_price, 
+               total_quantity, bid_count, min_price, max_price
         FROM weighted_avg_prices
         WHERE pay_item = ?
         """, (pay_code,))
