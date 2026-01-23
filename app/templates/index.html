@@ -19,14 +19,14 @@
         }
 
         .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%);
             color: white;
             padding: 2rem 1rem;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
 
         .container {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
             padding: 0 1rem;
         }
@@ -43,132 +43,287 @@
 
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 1.5rem;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1rem;
             margin: 2rem 0;
         }
 
         .stat-card {
             background: white;
-            padding: 1.5rem;
+            padding: 1.25rem;
             border-radius: 8px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-            transition: transform 0.2s;
-        }
-
-        .stat-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        }
-
-        .stat-card h3 {
-            color: #667eea;
-            font-size: 0.9rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 0.5rem;
+            text-align: center;
         }
 
         .stat-card .value {
-            font-size: 2.5rem;
+            font-size: 1.8rem;
             font-weight: bold;
-            color: #2c3e50;
-            margin: 0.5rem 0;
+            color: #1e3a5f;
         }
 
         .stat-card .label {
             color: #7f8c8d;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
+            margin-top: 0.25rem;
         }
 
         .search-section {
             background: white;
-            padding: 2rem;
+            padding: 1.5rem;
             border-radius: 8px;
             margin: 2rem 0;
             box-shadow: 0 2px 8px rgba(0,0,0,0.05);
         }
 
-        .search-section h2 {
+        .tab-buttons {
+            display: flex;
+            gap: 0.5rem;
             margin-bottom: 1.5rem;
-            color: #2c3e50;
+            flex-wrap: wrap;
+        }
+
+        .tab-button {
+            padding: 0.6rem 1.2rem;
+            background: #f8f9fa;
+            border: 2px solid #e0e0e0;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            transition: all 0.2s;
+        }
+
+        .tab-button:hover {
+            border-color: #1e3a5f;
+        }
+
+        .tab-button.active {
+            background: #1e3a5f;
+            color: white;
+            border-color: #1e3a5f;
         }
 
         .search-box {
             display: flex;
-            gap: 1rem;
+            gap: 0.75rem;
             margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .search-box input, .search-box select {
+            padding: 0.7rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 4px;
+            font-size: 1rem;
         }
 
         .search-box input {
             flex: 1;
-            padding: 0.8rem;
-            border: 2px solid #e0e0e0;
-            border-radius: 4px;
-            font-size: 1rem;
-            transition: border-color 0.3s;
+            min-width: 200px;
         }
 
-        .search-box input:focus {
+        .search-box input:focus, .search-box select:focus {
             outline: none;
-            border-color: #667eea;
+            border-color: #1e3a5f;
         }
 
         .search-box button {
-            padding: 0.8rem 2rem;
-            background: #667eea;
+            padding: 0.7rem 1.5rem;
+            background: #1e3a5f;
             color: white;
             border: none;
             border-radius: 4px;
             font-size: 1rem;
             cursor: pointer;
-            transition: background 0.3s;
+            transition: background 0.2s;
         }
 
         .search-box button:hover {
-            background: #5568d3;
+            background: #2d5a87;
+        }
+
+        .filters {
+            display: flex;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .filters label {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .filters input, .filters select {
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 0.9rem;
         }
 
         .results {
-            margin-top: 2rem;
+            margin-top: 1.5rem;
         }
 
-        .result-card {
-            background: #f8f9fa;
-            padding: 1.5rem;
-            border-radius: 4px;
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             margin-bottom: 1rem;
-            border-left: 4px solid #667eea;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #e0e0e0;
         }
 
-        .result-card h4 {
-            color: #2c3e50;
-            margin-bottom: 0.5rem;
+        .results-header h3 {
+            color: #1e3a5f;
         }
 
-        .result-card .details {
+        .results-count {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .summary-card {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 1.25rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            border-left: 4px solid #1e3a5f;
+        }
+
+        .summary-card h4 {
+            color: #1e3a5f;
+            margin-bottom: 0.75rem;
+        }
+
+        .summary-stats {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
             gap: 1rem;
+        }
+
+        .summary-stat {
+            text-align: center;
+        }
+
+        .summary-stat .value {
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .summary-stat .label {
+            font-size: 0.8rem;
+            color: #666;
+        }
+
+        .yearly-trends {
+            margin: 1rem 0;
+        }
+
+        .trend-bar {
+            display: flex;
+            align-items: center;
+            margin: 0.4rem 0;
+            font-size: 0.9rem;
+        }
+
+        .trend-bar .year {
+            width: 50px;
+            font-weight: 600;
+            color: #1e3a5f;
+        }
+
+        .trend-bar .bar-container {
+            flex: 1;
+            height: 24px;
+            background: #e9ecef;
+            border-radius: 4px;
+            margin: 0 0.75rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .trend-bar .bar {
+            height: 100%;
+            background: linear-gradient(90deg, #1e3a5f 0%, #2d5a87 100%);
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 8px;
+            color: white;
+            font-size: 0.75rem;
+            font-weight: 600;
+            min-width: 50px;
+        }
+
+        .trend-bar .count {
+            width: 70px;
+            text-align: right;
+            color: #666;
+            font-size: 0.85rem;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
             margin-top: 1rem;
         }
 
-        .result-card .detail-item {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .result-card .detail-label {
-            font-size: 0.85rem;
-            color: #7f8c8d;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .result-card .detail-value {
-            font-size: 1.1rem;
-            color: #2c3e50;
+        .data-table th {
+            background: #1e3a5f;
+            color: white;
+            padding: 0.75rem 0.5rem;
+            text-align: left;
             font-weight: 600;
+            position: sticky;
+            top: 0;
+        }
+
+        .data-table td {
+            padding: 0.6rem 0.5rem;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .data-table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .data-table .number {
+            text-align: right;
+            font-family: 'SF Mono', Monaco, monospace;
+        }
+
+        .data-table .winner {
+            background: #d4edda;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .badge-winner {
+            background: #28a745;
+            color: white;
+        }
+
+        .badge-rank {
+            background: #6c757d;
+            color: white;
+        }
+
+        .table-container {
+            max-height: 500px;
+            overflow-y: auto;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
         }
 
         .loading {
@@ -177,67 +332,115 @@
             color: #7f8c8d;
         }
 
+        .loading::after {
+            content: '';
+            animation: dots 1.5s infinite;
+        }
+
+        @keyframes dots {
+            0%, 20% { content: '.'; }
+            40% { content: '..'; }
+            60%, 100% { content: '...'; }
+        }
+
         .error {
-            background: #fee;
-            color: #c33;
+            background: #f8d7da;
+            color: #721c24;
             padding: 1rem;
             border-radius: 4px;
             margin: 1rem 0;
         }
 
-        .tab-buttons {
-            display: flex;
-            gap: 1rem;
-            margin-bottom: 1.5rem;
-        }
-
-        .tab-button {
-            padding: 0.8rem 1.5rem;
+        .no-results {
+            text-align: center;
+            padding: 2rem;
+            color: #666;
             background: #f8f9fa;
-            border: 2px solid #e0e0e0;
             border-radius: 4px;
-            cursor: pointer;
-            transition: all 0.3s;
         }
 
-        .tab-button.active {
-            background: #667eea;
-            color: white;
-            border-color: #667eea;
+        .contractor-card {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .contractor-card h4 {
+            color: #1e3a5f;
+            margin-bottom: 0.5rem;
+        }
+
+        .contractor-stats {
+            display: flex;
+            gap: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .contractor-stat {
+            text-align: center;
+        }
+
+        .contractor-stat .value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .contractor-stat .label {
+            font-size: 0.8rem;
+            color: #666;
         }
 
         .footer {
             text-align: center;
             padding: 2rem 1rem;
             color: #7f8c8d;
-            margin-top: 4rem;
+            margin-top: 2rem;
         }
 
         .api-links {
-            background: white;
-            padding: 2rem;
-            border-radius: 8px;
-            margin: 2rem 0;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-        }
-
-        .api-links h2 {
-            margin-bottom: 1rem;
+            display: flex;
+            gap: 0.5rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 1rem;
         }
 
         .api-links a {
-            display: inline-block;
-            margin: 0.5rem 1rem 0.5rem 0;
-            padding: 0.5rem 1rem;
-            background: #667eea;
+            padding: 0.4rem 0.8rem;
+            background: #1e3a5f;
             color: white;
             text-decoration: none;
             border-radius: 4px;
-            transition: background 0.3s;
+            font-size: 0.85rem;
         }
 
         .api-links a:hover {
-            background: #5568d3;
+            background: #2d5a87;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.5rem;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .data-table {
+                font-size: 0.8rem;
+            }
+            
+            .data-table th, .data-table td {
+                padding: 0.5rem 0.3rem;
+            }
         }
     </style>
 </head>
@@ -245,7 +448,7 @@
     <div class="header">
         <div class="container">
             <h1>🏗️ IDOT Bid Intelligence Platform</h1>
-            <p>Comprehensive construction bid pricing intelligence for Illinois</p>
+            <p>Construction bid pricing data for Illinois • 2018-2025</p>
         </div>
     </div>
 
@@ -253,152 +456,370 @@
         <!-- Stats Dashboard -->
         <div class="stats-grid" id="stats">
             <div class="stat-card">
-                <h3>Loading...</h3>
                 <div class="value">—</div>
-                <div class="label">Platform Status</div>
+                <div class="label">Loading...</div>
             </div>
         </div>
 
         <!-- Search Section -->
         <div class="search-section">
-            <h2>Search Pricing Intelligence</h2>
-            
             <div class="tab-buttons">
-                <button class="tab-button active" onclick="switchTab('payitem')">Pay Item</button>
-                <button class="tab-button" onclick="switchTab('contractor')">Contractor</button>
+                <button class="tab-button active" data-tab="payitem">Pay Item Search</button>
+                <button class="tab-button" data-tab="contractor">Contractor Search</button>
+                <button class="tab-button" data-tab="contract">Contract Lookup</button>
+                <button class="tab-button" data-tab="browse">Browse Items</button>
             </div>
 
-            <div id="payitem-search">
+            <!-- Pay Item Search -->
+            <div id="payitem-tab" class="tab-content">
                 <div class="search-box">
-                    <input type="text" id="payItemInput" placeholder="Enter pay code (e.g., 40603080)" />
+                    <input type="text" id="payItemInput" placeholder="Enter item code (e.g., 40603080, 60105)" />
                     <button onclick="searchPayItem()">Search</button>
+                </div>
+                <div class="filters">
+                    <label>County:</label>
+                    <input type="text" id="payItemCounty" placeholder="Optional" style="width: 120px;" />
+                    <label>Year From:</label>
+                    <select id="payItemYearStart">
+                        <option value="">All</option>
+                        <option value="2025">2025</option>
+                        <option value="2024">2024</option>
+                        <option value="2023">2023</option>
+                        <option value="2022">2022</option>
+                        <option value="2021">2021</option>
+                        <option value="2020">2020</option>
+                        <option value="2019">2019</option>
+                        <option value="2018">2018</option>
+                    </select>
+                    <label>To:</label>
+                    <select id="payItemYearEnd">
+                        <option value="">All</option>
+                        <option value="2025">2025</option>
+                        <option value="2024">2024</option>
+                        <option value="2023">2023</option>
+                        <option value="2022">2022</option>
+                        <option value="2021">2021</option>
+                        <option value="2020">2020</option>
+                        <option value="2019">2019</option>
+                        <option value="2018">2018</option>
+                    </select>
                 </div>
             </div>
 
-            <div id="contractor-search" style="display: none;">
+            <!-- Contractor Search -->
+            <div id="contractor-tab" class="tab-content hidden">
                 <div class="search-box">
-                    <input type="text" id="contractorInput" placeholder="Enter contractor name" />
+                    <input type="text" id="contractorInput" placeholder="Enter contractor name (e.g., K-Five, Gallagher)" />
                     <button onclick="searchContractor()">Search</button>
+                </div>
+            </div>
+
+            <!-- Contract Lookup -->
+            <div id="contract-tab" class="tab-content hidden">
+                <div class="search-box">
+                    <input type="text" id="contractInput" placeholder="Enter contract number (e.g., 61J77, 62T57)" />
+                    <button onclick="searchContract()">Search</button>
+                </div>
+            </div>
+
+            <!-- Browse Items -->
+            <div id="browse-tab" class="tab-content hidden">
+                <div class="search-box">
+                    <input type="text" id="browseInput" placeholder="Search by item code or description" />
+                    <button onclick="browseItems()">Search</button>
                 </div>
             </div>
 
             <div id="results" class="results"></div>
         </div>
-
-        <!-- API Documentation Links -->
-        <div class="api-links">
-            <h2>API Documentation</h2>
-            <p style="margin-bottom: 1rem; color: #7f8c8d;">
-                Access the full API documentation and interactive tools:
-            </p>
-            <a href="/docs" target="_blank">📚 Interactive API Docs (Swagger)</a>
-            <a href="/redoc" target="_blank">📖 API Reference (ReDoc)</a>
-            <a href="/api/status" target="_blank">🔍 Database Status</a>
-        </div>
     </div>
 
     <div class="footer">
-        <p>IDOT Bid Intelligence Platform v1.0 | Powered by FastAPI</p>
-        <p style="margin-top: 0.5rem; font-size: 0.9rem;">
-            Data: IDOT & Municipal Contracts
-        </p>
+        <p>IDOT Bid Intelligence Platform v2.0</p>
+        <div class="api-links">
+            <a href="/docs" target="_blank">📚 API Docs</a>
+            <a href="/api/analytics/summary" target="_blank">📊 Stats JSON</a>
+            <a href="/api/health" target="_blank">🔍 Health Check</a>
+        </div>
     </div>
 
     <script>
-        // Load statistics on page load
+        // Tab switching
+        document.querySelectorAll('.tab-button').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
+                btn.classList.add('active');
+                document.getElementById(btn.dataset.tab + '-tab').classList.remove('hidden');
+                document.getElementById('results').innerHTML = '';
+            });
+        });
+
+        // Load statistics
         async function loadStats() {
             try {
-                const response = await fetch('/api/status');
+                const response = await fetch('/api/analytics/summary');
                 const data = await response.json();
                 
-                if (data.status === 'connected') {
-                    const stats = data.statistics;
-                    const statsHtml = `
-                        <div class="stat-card">
-                            <h3>IDOT Contracts</h3>
-                            <div class="value">${stats.contracts.toLocaleString()}</div>
-                            <div class="label">Total Contracts</div>
-                        </div>
-                        <div class="stat-card">
-                            <h3>Contractor Bids</h3>
-                            <div class="value">${stats.contractor_bids.toLocaleString()}</div>
-                            <div class="label">Total Bids</div>
-                        </div>
-                        <div class="stat-card">
-                            <h3>Item-Level Bids</h3>
-                            <div class="value">${stats.item_bids.toLocaleString()}</div>
-                            <div class="label">Pricing Records</div>
-                        </div>
-                        <div class="stat-card">
-                            <h3>Municipal Data</h3>
-                            <div class="value">${stats.municipal_item_bids.toLocaleString()}</div>
-                            <div class="label">Lake County Bids</div>
-                        </div>
-                    `;
-                    document.getElementById('stats').innerHTML = statsHtml;
-                }
+                document.getElementById('stats').innerHTML = `
+                    <div class="stat-card">
+                        <div class="value">${(data.total_bid_rows / 1000000).toFixed(2)}M</div>
+                        <div class="label">Bid Records</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="value">${data.unique_contracts.toLocaleString()}</div>
+                        <div class="label">Contracts</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="value">${data.unique_contractors.toLocaleString()}</div>
+                        <div class="label">Contractors</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="value">${data.unique_items.toLocaleString()}</div>
+                        <div class="label">Pay Items</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="value">${data.unique_counties}</div>
+                        <div class="label">Counties</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="value">${data.year_range.min}-${data.year_range.max}</div>
+                        <div class="label">Year Range</div>
+                    </div>
+                `;
             } catch (error) {
                 console.error('Error loading stats:', error);
             }
         }
 
-        function switchTab(tab) {
-            // Update button states
-            document.querySelectorAll('.tab-button').forEach(btn => {
-                btn.classList.remove('active');
-            });
-            event.target.classList.add('active');
-            
-            // Show/hide search boxes
-            document.getElementById('payitem-search').style.display = tab === 'payitem' ? 'block' : 'none';
-            document.getElementById('contractor-search').style.display = tab === 'contractor' ? 'block' : 'none';
-            
-            // Clear results
-            document.getElementById('results').innerHTML = '';
+        // Format currency
+        function formatCurrency(value) {
+            if (value === null || value === undefined || value === '') return '—';
+            return '$' + parseFloat(value).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         }
 
+        // Pay Item Search
         async function searchPayItem() {
-            const payCode = document.getElementById('payItemInput').value.trim();
-            if (!payCode) return;
+            const itemCode = document.getElementById('payItemInput').value.trim();
+            if (!itemCode) return;
+            
+            const county = document.getElementById('payItemCounty').value.trim();
+            const yearStart = document.getElementById('payItemYearStart').value;
+            const yearEnd = document.getElementById('payItemYearEnd').value;
             
             const resultsDiv = document.getElementById('results');
-            resultsDiv.innerHTML = '<div class="loading">Searching...</div>';
+            resultsDiv.innerHTML = '<div class="loading">Searching</div>';
             
             try {
-                const response = await fetch(`/api/search/pay-item/${payCode}`);
-                if (!response.ok) throw new Error('Pay item not found');
+                let url = `/api/search/pay-item/${encodeURIComponent(itemCode)}?limit=500`;
+                if (county) url += `&county=${encodeURIComponent(county)}`;
+                if (yearStart) url += `&year_start=${yearStart}`;
+                if (yearEnd) url += `&year_end=${yearEnd}`;
                 
+                const response = await fetch(url);
                 const data = await response.json();
                 
+                if (data.result_count === 0) {
+                    resultsDiv.innerHTML = '<div class="no-results">No results found for this item code.</div>';
+                    return;
+                }
+                
+                // Calculate summary stats from bids
+                const prices = data.bids.filter(b => b.unit_price > 0).map(b => b.unit_price);
+                const avgPrice = prices.length > 0 ? prices.reduce((a, b) => a + b, 0) / prices.length : 0;
+                const minPrice = prices.length > 0 ? Math.min(...prices) : 0;
+                const maxPrice = prices.length > 0 ? Math.max(...prices) : 0;
+                
+                // Get unique descriptions
+                const descriptions = [...new Set(data.bids.map(b => b.item_description))];
+                const units = [...new Set(data.bids.map(b => b.unit))];
+                
+                // Build yearly trends chart
+                let trendsHtml = '';
+                if (data.yearly_trends && data.yearly_trends.length > 0) {
+                    const maxCount = Math.max(...data.yearly_trends.map(t => t.bid_count));
+                    trendsHtml = `
+                        <div class="yearly-trends">
+                            <h4 style="margin-bottom: 0.75rem; color: #1e3a5f;">Yearly Pricing Trends</h4>
+                            ${data.yearly_trends.map(t => `
+                                <div class="trend-bar">
+                                    <span class="year">${t.year}</span>
+                                    <div class="bar-container">
+                                        <div class="bar" style="width: ${(t.bid_count / maxCount * 100)}%">
+                                            ${formatCurrency(t.avg_price)}
+                                        </div>
+                                    </div>
+                                    <span class="count">${t.bid_count} bids</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    `;
+                }
+                
                 resultsDiv.innerHTML = `
-                    <div class="result-card">
-                        <h4>${data.pay_item} - ${data.description}</h4>
-                        <div class="details">
-                            <div class="detail-item">
-                                <span class="detail-label">Unit</span>
-                                <span class="detail-value">${data.unit}</span>
+                    <div class="results-header">
+                        <h3>Results for "${itemCode}"</h3>
+                        <span class="results-count">${data.result_count.toLocaleString()} bid records</span>
+                    </div>
+                    
+                    <div class="summary-card">
+                        <h4>${descriptions[0] || itemCode}</h4>
+                        <div class="summary-stats">
+                            <div class="summary-stat">
+                                <div class="value">${formatCurrency(avgPrice)}</div>
+                                <div class="label">Avg Unit Price</div>
                             </div>
-                            <div class="detail-item">
-                                <span class="detail-label">2025 Average</span>
-                                <span class="detail-value">$${data.pricing.weighted_average_2025?.toFixed(2) || 'N/A'}</span>
+                            <div class="summary-stat">
+                                <div class="value">${formatCurrency(minPrice)}</div>
+                                <div class="label">Min Price</div>
                             </div>
-                            <div class="detail-item">
-                                <span class="detail-label">2026 Projection</span>
-                                <span class="detail-value">$${data.pricing.weighted_average_2026?.toFixed(2) || 'N/A'}</span>
+                            <div class="summary-stat">
+                                <div class="value">${formatCurrency(maxPrice)}</div>
+                                <div class="label">Max Price</div>
                             </div>
-                            <div class="detail-item">
-                                <span class="detail-label">Trend</span>
-                                <span class="detail-value">${data.pricing.trend || 'N/A'}</span>
-                            </div>
-                            <div class="detail-item">
-                                <span class="detail-label">Total Bids</span>
-                                <span class="detail-value">${data.statistics.total_bids?.toLocaleString()}</span>
-                            </div>
-                            <div class="detail-item">
-                                <span class="detail-label">Price Range</span>
-                                <span class="detail-value">$${data.pricing.min_price?.toFixed(2)} - $${data.pricing.max_price?.toFixed(2)}</span>
+                            <div class="summary-stat">
+                                <div class="value">${units[0] || '—'}</div>
+                                <div class="label">Unit</div>
                             </div>
                         </div>
+                    </div>
+                    
+                    ${trendsHtml}
+                    
+                    <div class="table-container">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Contract</th>
+                                    <th>Date</th>
+                                    <th>County</th>
+                                    <th>Bidder</th>
+                                    <th>Rank</th>
+                                    <th class="number">Qty</th>
+                                    <th class="number">Unit Price</th>
+                                    <th class="number">Extension</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${data.bids.slice(0, 200).map(bid => `
+                                    <tr class="${bid.is_winner === 'Y' ? 'winner' : ''}">
+                                        <td>${bid.contract_number}</td>
+                                        <td>${bid.letting_date}</td>
+                                        <td>${bid.county || '—'}</td>
+                                        <td>${bid.bidder_name}${bid.is_winner === 'Y' ? ' <span class="badge badge-winner">WIN</span>' : ''}</td>
+                                        <td><span class="badge badge-rank">#${bid.bidder_rank}</span></td>
+                                        <td class="number">${bid.quantity?.toLocaleString() || '—'}</td>
+                                        <td class="number">${formatCurrency(bid.unit_price)}</td>
+                                        <td class="number">${formatCurrency(bid.extension)}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                    ${data.bids.length > 200 ? `<p style="margin-top: 0.5rem; color: #666; font-size: 0.85rem;">Showing first 200 of ${data.bids.length} records</p>` : ''}
+                `;
+            } catch (error) {
+                resultsDiv.innerHTML = `<div class="error">Error: ${error.message}</div>`;
+            }
+        }
+
+        // Contractor Search
+        async function searchContractor() {
+            const name = document.getElementById('contractorInput').value.trim();
+            if (!name) return;
+            
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '<div class="loading">Searching</div>';
+            
+            try {
+                const response = await fetch(`/api/search/contractor/${encodeURIComponent(name)}?limit=500`);
+                const data = await response.json();
+                
+                if (data.result_count === 0) {
+                    resultsDiv.innerHTML = '<div class="no-results">No results found for this contractor.</div>';
+                    return;
+                }
+                
+                // Build contractor stats cards
+                let statsHtml = '';
+                if (data.contractor_stats && data.contractor_stats.length > 0) {
+                    statsHtml = data.contractor_stats.map(stat => `
+                        <div class="contractor-card">
+                            <h4>${stat.bidder_name}</h4>
+                            <div class="contractor-stats">
+                                <div class="contractor-stat">
+                                    <div class="value">${stat.contracts_bid}</div>
+                                    <div class="label">Contracts Bid</div>
+                                </div>
+                                <div class="contractor-stat">
+                                    <div class="value">${(stat.win_rate * 100).toFixed(1)}%</div>
+                                    <div class="label">Win Rate</div>
+                                </div>
+                                <div class="contractor-stat">
+                                    <div class="value">${stat.avg_rank?.toFixed(1) || '—'}</div>
+                                    <div class="label">Avg Rank</div>
+                                </div>
+                                <div class="contractor-stat">
+                                    <div class="value">${formatCurrency(stat.total_won_value)}</div>
+                                    <div class="label">Total Won Value</div>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+                
+                // Group bids by contract
+                const contractGroups = {};
+                data.bids.forEach(bid => {
+                    if (!contractGroups[bid.contract_number]) {
+                        contractGroups[bid.contract_number] = {
+                            date: bid.letting_date,
+                            county: bid.county,
+                            total_bid: bid.total_bid_amount,
+                            is_winner: bid.is_winner,
+                            rank: bid.bidder_rank,
+                            items: []
+                        };
+                    }
+                    contractGroups[bid.contract_number].items.push(bid);
+                });
+                
+                const contracts = Object.entries(contractGroups).slice(0, 50);
+                
+                resultsDiv.innerHTML = `
+                    <div class="results-header">
+                        <h3>Results for "${name}"</h3>
+                        <span class="results-count">${data.result_count.toLocaleString()} bid records</span>
+                    </div>
+                    
+                    ${statsHtml}
+                    
+                    <h4 style="margin: 1.5rem 0 1rem; color: #1e3a5f;">Recent Contracts (${contracts.length} shown)</h4>
+                    <div class="table-container">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Contract</th>
+                                    <th>Date</th>
+                                    <th>County</th>
+                                    <th>Rank</th>
+                                    <th class="number">Total Bid</th>
+                                    <th>Items</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${contracts.map(([contract, info]) => `
+                                    <tr class="${info.is_winner === 'Y' ? 'winner' : ''}">
+                                        <td><a href="#" onclick="searchContractDirect('${contract}'); return false;">${contract}</a></td>
+                                        <td>${info.date}</td>
+                                        <td>${info.county || '—'}</td>
+                                        <td>${info.is_winner === 'Y' ? '<span class="badge badge-winner">WON</span>' : `<span class="badge badge-rank">#${info.rank}</span>`}</td>
+                                        <td class="number">${formatCurrency(info.total_bid)}</td>
+                                        <td>${info.items.length} items</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
                     </div>
                 `;
             } catch (error) {
@@ -406,70 +827,179 @@
             }
         }
 
-        async function searchContractor() {
-            const contractor = document.getElementById('contractorInput').value.trim();
-            if (!contractor) return;
-            
+        // Contract Search
+        async function searchContract() {
+            const contract = document.getElementById('contractInput').value.trim();
+            if (!contract) return;
+            searchContractDirect(contract);
+        }
+        
+        async function searchContractDirect(contract) {
             const resultsDiv = document.getElementById('results');
-            resultsDiv.innerHTML = '<div class="loading">Searching...</div>';
+            resultsDiv.innerHTML = '<div class="loading">Searching</div>';
             
             try {
-                const response = await fetch(`/api/search/contractor/${encodeURIComponent(contractor)}`);
-                if (!response.ok) throw new Error('Contractor not found');
-                
+                const response = await fetch(`/api/search/contract/${encodeURIComponent(contract)}`);
+                if (!response.ok) throw new Error('Contract not found');
                 const data = await response.json();
                 
-                let html = `
-                    <div class="result-card">
-                        <h4>📊 ${data.contractor} - Performance Summary</h4>
-                        <div class="details">
-                            <div class="detail-item">
-                                <span class="detail-label">Total IDOT Bids</span>
-                                <span class="detail-value">${data.statistics.total_idot_bids}</span>
+                // Get contract info from first bid
+                const firstBid = data.bids[0];
+                const bidders = [...new Set(data.bids.map(b => b.bidder_name))];
+                const winner = data.bids.find(b => b.is_winner === 'Y');
+                
+                // Group by bidder
+                const bidderGroups = {};
+                data.bids.forEach(bid => {
+                    if (!bidderGroups[bid.bidder_name]) {
+                        bidderGroups[bid.bidder_name] = {
+                            rank: bid.bidder_rank,
+                            total: bid.total_bid_amount,
+                            is_winner: bid.is_winner,
+                            items: []
+                        };
+                    }
+                    bidderGroups[bid.bidder_name].items.push(bid);
+                });
+                
+                const sortedBidders = Object.entries(bidderGroups).sort((a, b) => a[1].rank - b[1].rank);
+                
+                resultsDiv.innerHTML = `
+                    <div class="results-header">
+                        <h3>Contract ${contract}</h3>
+                        <span class="results-count">${data.result_count.toLocaleString()} bid records</span>
+                    </div>
+                    
+                    <div class="summary-card">
+                        <h4>Contract Details</h4>
+                        <div class="summary-stats">
+                            <div class="summary-stat">
+                                <div class="value">${firstBid?.letting_date || '—'}</div>
+                                <div class="label">Letting Date</div>
                             </div>
-                            <div class="detail-item">
-                                <span class="detail-label">Wins</span>
-                                <span class="detail-value">${data.statistics.idot_wins}</span>
+                            <div class="summary-stat">
+                                <div class="value">${firstBid?.county || '—'}</div>
+                                <div class="label">County</div>
                             </div>
-                            <div class="detail-item">
-                                <span class="detail-label">Win Rate</span>
-                                <span class="detail-value">${data.statistics.win_rate}%</span>
+                            <div class="summary-stat">
+                                <div class="value">${bidders.length}</div>
+                                <div class="label">Bidders</div>
                             </div>
-                            <div class="detail-item">
-                                <span class="detail-label">Avg Bid Amount</span>
-                                <span class="detail-value">$${(data.statistics.avg_bid_amount || 0).toLocaleString('en-US', {maximumFractionDigits: 0})}</span>
+                            <div class="summary-stat">
+                                <div class="value">${winner?.bidder_name?.substring(0, 20) || '—'}${winner?.bidder_name?.length > 20 ? '...' : ''}</div>
+                                <div class="label">Winner</div>
                             </div>
                         </div>
                     </div>
+                    
+                    <h4 style="margin: 1.5rem 0 1rem; color: #1e3a5f;">All Bidders</h4>
+                    ${sortedBidders.map(([name, info]) => `
+                        <div class="contractor-card" style="${info.is_winner === 'Y' ? 'border-left: 4px solid #28a745;' : ''}">
+                            <h4>${info.is_winner === 'Y' ? '🏆 ' : ''}${name} ${info.is_winner === 'Y' ? '<span class="badge badge-winner">WINNER</span>' : `<span class="badge badge-rank">Rank #${info.rank}</span>`}</h4>
+                            <p style="margin: 0.5rem 0; font-size: 1.1rem;"><strong>Total Bid: ${formatCurrency(info.total)}</strong> • ${info.items.length} items</p>
+                        </div>
+                    `).join('')}
+                    
+                    <h4 style="margin: 1.5rem 0 1rem; color: #1e3a5f;">All Item Bids</h4>
+                    <div class="table-container">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Item</th>
+                                    <th>Description</th>
+                                    <th>Bidder</th>
+                                    <th>Rank</th>
+                                    <th class="number">Qty</th>
+                                    <th>Unit</th>
+                                    <th class="number">Unit Price</th>
+                                    <th class="number">Extension</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${data.bids.slice(0, 300).map(bid => `
+                                    <tr class="${bid.is_winner === 'Y' ? 'winner' : ''}">
+                                        <td><a href="#" onclick="document.getElementById('payItemInput').value='${bid.item_number}'; searchPayItem(); return false;">${bid.item_number}</a></td>
+                                        <td>${bid.item_description?.substring(0, 30) || '—'}${bid.item_description?.length > 30 ? '...' : ''}</td>
+                                        <td>${bid.bidder_name?.substring(0, 25) || '—'}${bid.bidder_name?.length > 25 ? '...' : ''}</td>
+                                        <td><span class="badge badge-rank">#${bid.bidder_rank}</span></td>
+                                        <td class="number">${bid.quantity?.toLocaleString() || '—'}</td>
+                                        <td>${bid.unit || '—'}</td>
+                                        <td class="number">${formatCurrency(bid.unit_price)}</td>
+                                        <td class="number">${formatCurrency(bid.extension)}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                    ${data.bids.length > 300 ? `<p style="margin-top: 0.5rem; color: #666; font-size: 0.85rem;">Showing first 300 of ${data.bids.length} records</p>` : ''}
                 `;
+            } catch (error) {
+                resultsDiv.innerHTML = `<div class="error">Error: ${error.message}</div>`;
+            }
+        }
+
+        // Browse Items
+        async function browseItems() {
+            const search = document.getElementById('browseInput').value.trim();
+            
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '<div class="loading">Loading</div>';
+            
+            try {
+                let url = '/api/items?limit=100';
+                if (search) url += `&search=${encodeURIComponent(search)}`;
                 
-                if (data.idot_bids.length > 0) {
-                    html += `<div class="result-card"><h4>Recent IDOT Bids</h4>`;
-                    data.idot_bids.slice(0, 5).forEach(bid => {
-                        html += `
-                            <div style="padding: 0.5rem 0; border-bottom: 1px solid #e0e0e0;">
-                                ${bid.won ? '🏆' : '📋'} ${bid.contract} - $${bid.amount.toLocaleString()} 
-                                (${bid.date}) - ${bid.bidders} bidders
-                            </div>
-                        `;
-                    });
-                    html += `</div>`;
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                if (data.items.length === 0) {
+                    resultsDiv.innerHTML = '<div class="no-results">No items found.</div>';
+                    return;
                 }
                 
-                resultsDiv.innerHTML = html;
+                resultsDiv.innerHTML = `
+                    <div class="results-header">
+                        <h3>Pay Items${search ? ` matching "${search}"` : ''}</h3>
+                        <span class="results-count">${data.items.length} items</span>
+                    </div>
+                    
+                    <div class="table-container">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Item Code</th>
+                                    <th>Description</th>
+                                    <th>Unit</th>
+                                    <th class="number">Avg Price</th>
+                                    <th class="number">Bid Count</th>
+                                    <th class="number">Contracts</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${data.items.map(item => `
+                                    <tr>
+                                        <td><a href="#" onclick="document.getElementById('payItemInput').value='${item.item_number}'; document.querySelector('[data-tab=payitem]').click(); searchPayItem(); return false;">${item.item_number}</a></td>
+                                        <td>${item.item_description || '—'}</td>
+                                        <td>${item.unit || '—'}</td>
+                                        <td class="number">${formatCurrency(item.avg_unit_price)}</td>
+                                        <td class="number">${item.bid_count?.toLocaleString() || '—'}</td>
+                                        <td class="number">${item.contract_count?.toLocaleString() || '—'}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                `;
             } catch (error) {
                 resultsDiv.innerHTML = `<div class="error">Error: ${error.message}</div>`;
             }
         }
 
         // Enter key support
-        document.getElementById('payItemInput')?.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') searchPayItem();
-        });
-        
-        document.getElementById('contractorInput')?.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') searchContractor();
-        });
+        document.getElementById('payItemInput').addEventListener('keypress', e => { if (e.key === 'Enter') searchPayItem(); });
+        document.getElementById('contractorInput').addEventListener('keypress', e => { if (e.key === 'Enter') searchContractor(); });
+        document.getElementById('contractInput').addEventListener('keypress', e => { if (e.key === 'Enter') searchContract(); });
+        document.getElementById('browseInput').addEventListener('keypress', e => { if (e.key === 'Enter') browseItems(); });
 
         // Load stats on page load
         loadStats();
