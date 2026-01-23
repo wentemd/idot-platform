@@ -17,6 +17,37 @@ def get_db():
     return conn
 
 # ============================================================================
+# STATS ENDPOINT
+# ============================================================================
+
+@router.get("/stats")
+async def get_stats():
+    """Get overall database statistics"""
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    cursor.execute("SELECT COUNT(*) FROM bids")
+    total_bids = cursor.fetchone()[0]
+    
+    cursor.execute("SELECT COUNT(DISTINCT contract_number) FROM bids")
+    total_contracts = cursor.fetchone()[0]
+    
+    cursor.execute("SELECT COUNT(DISTINCT bidder_name) FROM bids")
+    total_contractors = cursor.fetchone()[0]
+    
+    cursor.execute("SELECT COUNT(DISTINCT item_number) FROM bids")
+    total_items = cursor.fetchone()[0]
+    
+    conn.close()
+    
+    return {
+        "total_bids": total_bids,
+        "total_contracts": total_contracts,
+        "total_contractors": total_contractors,
+        "total_items": total_items
+    }
+
+# ============================================================================
 # PAY ITEM SEARCH
 # ============================================================================
 
@@ -205,15 +236,16 @@ async def search_contractor(
     cursor.execute(query, params)
     rows = cursor.fetchall()
     
-    # Get win statistics
+    # Get win statistics - FIXED: use 'Y' instead of 'Yes'
     cursor.execute("""
         SELECT 
             bidder_name,
             COUNT(DISTINCT contract_number) as contracts_bid,
-            SUM(CASE WHEN is_winner = 'Yes' THEN 1 ELSE 0 END) / 
-                CAST(COUNT(DISTINCT contract_number || bidder_name) AS FLOAT) as win_rate,
-            AVG(bidder_rank) as avg_rank,
-            SUM(CASE WHEN is_winner = 'Yes' THEN total_bid_amount ELSE 0 END) as total_won_value
+            SUM(CASE WHEN is_winner = 'Y' THEN 1 ELSE 0 END) as contracts_won,
+            ROUND(100.0 * SUM(CASE WHEN is_winner = 'Y' THEN 1 ELSE 0 END) / 
+                COUNT(DISTINCT contract_number), 1) as win_rate,
+            ROUND(AVG(bidder_rank), 1) as avg_rank,
+            SUM(CASE WHEN is_winner = 'Y' THEN total_bid_amount ELSE 0 END) as total_won_value
         FROM (
             SELECT DISTINCT contract_number, bidder_name, is_winner, bidder_rank, total_bid_amount
             FROM bids
@@ -306,124 +338,103 @@ async def get_item_pricing_summary(
     
     return {
         "min_occurrences": min_occurrences,
-        "item_count": len(rows),
+        "result_count": len(rows),
         "items": [dict(row) for row in rows]
     }
 
 
-@router.get("/pricing/by-county/{county}")
-async def get_county_pricing(
-    county: str,
-    item_number: Optional[str] = None,
-    limit: int = Query(default=100, le=500)
-):
-    """Get pricing data filtered by county"""
+@router.get("/pricing/county-comparison/{item_number}")
+async def get_county_comparison(item_number: str):
+    """
+    Compare pricing for an item across counties.
+    """
     conn = get_db()
     cursor = conn.cursor()
     
-    query = """
+    cursor.execute("""
         SELECT 
-            item_number,
-            item_description,
-            unit,
+            county,
             COUNT(*) as bid_count,
             AVG(unit_price) as avg_price,
             MIN(unit_price) as min_price,
             MAX(unit_price) as max_price
         FROM bids
-        WHERE county LIKE ?
+        WHERE item_number LIKE ?
         AND unit_price > 0
-    """
-    params = [f"%{county}%"]
-    
-    if item_number:
-        query += " AND item_number LIKE ?"
-        params.append(f"%{item_number}%")
-    
-    query += """
-        GROUP BY item_number, item_description, unit
+        GROUP BY county
         HAVING COUNT(*) >= 3
-        ORDER BY bid_count DESC
-        LIMIT ?
-    """
-    params.append(limit)
+        ORDER BY avg_price DESC
+    """, [f"%{item_number}%"])
     
-    cursor.execute(query, params)
     rows = cursor.fetchall()
     conn.close()
     
     return {
-        "county": county,
-        "item_filter": item_number,
-        "item_count": len(rows),
-        "items": [dict(row) for row in rows]
+        "item_number": item_number,
+        "counties": [dict(row) for row in rows]
     }
 
 # ============================================================================
-# ANALYTICS ENDPOINTS
+# BROWSE / LIST ENDPOINTS
 # ============================================================================
 
-@router.get("/analytics/summary")
-async def get_platform_summary():
-    """Get overall platform statistics"""
+@router.get("/browse/items")
+async def browse_items(
+    search: Optional[str] = None,
+    limit: int = Query(default=100, le=500)
+):
+    """Browse all pay items with optional search"""
     conn = get_db()
     cursor = conn.cursor()
     
-    stats = {}
+    if search:
+        cursor.execute("""
+            SELECT 
+                item_number,
+                item_description,
+                unit,
+                COUNT(*) as bid_count,
+                COUNT(DISTINCT contract_number) as contract_count,
+                ROUND(AVG(unit_price), 2) as avg_price
+            FROM bids
+            WHERE (item_number LIKE ? OR item_description LIKE ?)
+            AND unit_price > 0
+            GROUP BY item_number, item_description, unit
+            ORDER BY bid_count DESC
+            LIMIT ?
+        """, [f"%{search}%", f"%{search}%", limit])
+    else:
+        cursor.execute("""
+            SELECT 
+                item_number,
+                item_description,
+                unit,
+                COUNT(*) as bid_count,
+                COUNT(DISTINCT contract_number) as contract_count,
+                ROUND(AVG(unit_price), 2) as avg_price
+            FROM bids
+            WHERE unit_price > 0
+            GROUP BY item_number, item_description, unit
+            ORDER BY bid_count DESC
+            LIMIT ?
+        """, [limit])
     
-    # Total rows
-    cursor.execute("SELECT COUNT(*) FROM bids")
-    stats["total_bid_rows"] = cursor.fetchone()[0]
-    
-    # Unique contracts
-    cursor.execute("SELECT COUNT(DISTINCT contract_number) FROM bids")
-    stats["unique_contracts"] = cursor.fetchone()[0]
-    
-    # Unique contractors
-    cursor.execute("SELECT COUNT(DISTINCT bidder_name) FROM bids")
-    stats["unique_contractors"] = cursor.fetchone()[0]
-    
-    # Unique items
-    cursor.execute("SELECT COUNT(DISTINCT item_number) FROM bids")
-    stats["unique_items"] = cursor.fetchone()[0]
-    
-    # Year range
-    cursor.execute("""
-        SELECT 
-            MIN(substr(letting_date, length(letting_date)-3)) as min_year,
-            MAX(substr(letting_date, length(letting_date)-3)) as max_year
-        FROM bids
-    """)
-    row = cursor.fetchone()
-    stats["year_range"] = {"min": row[0], "max": row[1]}
-    
-    # Counties
-    cursor.execute("SELECT COUNT(DISTINCT county) FROM bids WHERE county IS NOT NULL AND county != ''")
-    stats["unique_counties"] = cursor.fetchone()[0]
-    
-    # Bids by year
-    cursor.execute("""
-        SELECT 
-            substr(letting_date, length(letting_date)-3) as year,
-            COUNT(*) as row_count,
-            COUNT(DISTINCT contract_number) as contracts
-        FROM bids
-        GROUP BY substr(letting_date, length(letting_date)-3)
-        ORDER BY year
-    """)
-    stats["by_year"] = [dict(row) for row in cursor.fetchall()]
-    
+    rows = cursor.fetchall()
     conn.close()
     
-    return stats
+    return {
+        "search": search,
+        "result_count": len(rows),
+        "items": [dict(row) for row in rows]
+    }
 
 
-@router.get("/analytics/contractors/top")
-async def get_top_contractors(
-    limit: int = Query(default=25, le=100),
-    year: Optional[int] = None
+@router.get("/browse/contractors")
+async def browse_contractors(
+    search: Optional[str] = None,
+    limit: int = Query(default=100, le=500)
 ):
-    """Get top contractors by contracts won"""
+    """Browse all contractors with optional search"""
     conn = get_db()
     cursor = conn.cursor()
     
@@ -431,71 +442,39 @@ async def get_top_contractors(
         SELECT 
             bidder_name,
             COUNT(DISTINCT contract_number) as contracts_bid,
-            SUM(CASE WHEN is_winner = 'Yes' THEN 1 ELSE 0 END) as contracts_won,
-            ROUND(AVG(bidder_rank), 2) as avg_rank
+            SUM(CASE WHEN is_winner = 'Y' THEN 1 ELSE 0 END) as contracts_won,
+            ROUND(100.0 * SUM(CASE WHEN is_winner = 'Y' THEN 1 ELSE 0 END) / 
+                COUNT(DISTINCT contract_number), 1) as win_rate,
+            SUM(CASE WHEN is_winner = 'Y' THEN total_bid_amount ELSE 0 END) as total_won_value
         FROM (
-            SELECT DISTINCT contract_number, bidder_name, is_winner, bidder_rank
+            SELECT DISTINCT contract_number, bidder_name, is_winner, total_bid_amount
             FROM bids
-    """
-    params = []
-    
-    if year:
-        query += " WHERE substr(letting_date, length(letting_date)-3) = ?"
-        params.append(str(year))
-    
-    query += """
         )
-        GROUP BY bidder_name
-        HAVING contracts_bid >= 3
-        ORDER BY contracts_won DESC, contracts_bid DESC
-        LIMIT ?
     """
-    params.append(limit)
     
-    cursor.execute(query, params)
+    if search:
+        query += " WHERE bidder_name LIKE ?"
+        query += " GROUP BY bidder_name ORDER BY contracts_bid DESC LIMIT ?"
+        cursor.execute(query, [f"%{search}%", limit])
+    else:
+        query += " GROUP BY bidder_name ORDER BY contracts_bid DESC LIMIT ?"
+        cursor.execute(query, [limit])
+    
     rows = cursor.fetchall()
     conn.close()
     
     return {
-        "year_filter": year,
+        "search": search,
+        "result_count": len(rows),
         "contractors": [dict(row) for row in rows]
     }
 
 
-@router.get("/analytics/counties")
-async def get_county_stats():
-    """Get bidding statistics by county"""
-    conn = get_db()
-    cursor = conn.cursor()
-    
-    cursor.execute("""
-        SELECT 
-            county,
-            COUNT(DISTINCT contract_number) as contracts,
-            COUNT(DISTINCT bidder_name) as contractors,
-            COUNT(*) as total_bid_rows
-        FROM bids
-        WHERE county IS NOT NULL AND county != ''
-        GROUP BY county
-        ORDER BY contracts DESC
-    """)
-    
-    rows = cursor.fetchall()
-    conn.close()
-    
-    return {"counties": [dict(row) for row in rows]}
-
-# ============================================================================
-# BROWSE ENDPOINTS
-# ============================================================================
-
-@router.get("/contracts")
-async def list_contracts(
+@router.get("/browse/contracts")
+async def browse_contracts(
     county: Optional[str] = None,
     year: Optional[int] = None,
-    bidder: Optional[str] = None,
-    limit: int = Query(default=50, le=200),
-    offset: int = Query(default=0)
+    limit: int = Query(default=100, le=500)
 ):
     """Browse contracts with optional filters"""
     conn = get_db()
@@ -506,8 +485,6 @@ async def list_contracts(
             contract_number,
             letting_date,
             county,
-            district,
-            project_type,
             num_bidders,
             engineers_estimate,
             awarded
@@ -521,129 +498,18 @@ async def list_contracts(
         params.append(f"%{county}%")
     
     if year:
-        query += " AND substr(letting_date, length(letting_date)-3) = ?"
-        params.append(str(year))
+        query += " AND CAST(substr(letting_date, length(letting_date)-3) AS INTEGER) = ?"
+        params.append(year)
     
-    if bidder:
-        query += " AND contract_number IN (SELECT DISTINCT contract_number FROM bids WHERE bidder_name LIKE ?)"
-        params.append(f"%{bidder}%")
-    
-    query += " ORDER BY letting_date DESC LIMIT ? OFFSET ?"
-    params.extend([limit, offset])
+    query += " ORDER BY letting_date DESC LIMIT ?"
+    params.append(limit)
     
     cursor.execute(query, params)
     rows = cursor.fetchall()
     conn.close()
     
     return {
-        "filters": {"county": county, "year": year, "bidder": bidder},
-        "limit": limit,
-        "offset": offset,
+        "filters": {"county": county, "year": year},
+        "result_count": len(rows),
         "contracts": [dict(row) for row in rows]
     }
-
-
-@router.get("/contractors")
-async def list_contractors(
-    search: Optional[str] = None,
-    limit: int = Query(default=50, le=200),
-    offset: int = Query(default=0)
-):
-    """Browse all contractors"""
-    conn = get_db()
-    cursor = conn.cursor()
-    
-    query = """
-        SELECT 
-            bidder_name,
-            COUNT(DISTINCT contract_number) as contracts_bid,
-            MIN(letting_date) as first_bid,
-            MAX(letting_date) as last_bid
-        FROM bids
-    """
-    params = []
-    
-    if search:
-        query += " WHERE bidder_name LIKE ?"
-        params.append(f"%{search}%")
-    
-    query += """
-        GROUP BY bidder_name
-        ORDER BY contracts_bid DESC
-        LIMIT ? OFFSET ?
-    """
-    params.extend([limit, offset])
-    
-    cursor.execute(query, params)
-    rows = cursor.fetchall()
-    conn.close()
-    
-    return {
-        "search": search,
-        "limit": limit,
-        "offset": offset,
-        "contractors": [dict(row) for row in rows]
-    }
-
-
-@router.get("/items")
-async def list_items(
-    search: Optional[str] = None,
-    limit: int = Query(default=50, le=200),
-    offset: int = Query(default=0)
-):
-    """Browse all pay items"""
-    conn = get_db()
-    cursor = conn.cursor()
-    
-    query = """
-        SELECT 
-            item_number,
-            item_description,
-            unit,
-            COUNT(*) as bid_count,
-            COUNT(DISTINCT contract_number) as contract_count,
-            ROUND(AVG(unit_price), 2) as avg_unit_price
-        FROM bids
-        WHERE unit_price > 0
-    """
-    params = []
-    
-    if search:
-        query += " AND (item_number LIKE ? OR item_description LIKE ?)"
-        params.extend([f"%{search}%", f"%{search}%"])
-    
-    query += """
-        GROUP BY item_number, item_description, unit
-        ORDER BY bid_count DESC
-        LIMIT ? OFFSET ?
-    """
-    params.extend([limit, offset])
-    
-    cursor.execute(query, params)
-    rows = cursor.fetchall()
-    conn.close()
-    
-    return {
-        "search": search,
-        "limit": limit,
-        "offset": offset,
-        "items": [dict(row) for row in rows]
-    }
-
-# ============================================================================
-# HEALTH CHECK
-# ============================================================================
-
-@router.get("/health")
-async def health_check():
-    """Health check endpoint"""
-    try:
-        conn = get_db()
-        cursor = conn.cursor()
-        cursor.execute("SELECT COUNT(*) FROM bids")
-        count = cursor.fetchone()[0]
-        conn.close()
-        return {"status": "healthy", "bid_rows": count}
-    except Exception as e:
-        return {"status": "unhealthy", "error": str(e)}
