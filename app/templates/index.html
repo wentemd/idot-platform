@@ -1,4 +1,3 @@
-<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -732,7 +731,7 @@
             resultsDiv.innerHTML = '<div class="loading">Searching</div>';
             
             try {
-                const response = await fetch(`/api/search/contractor/${encodeURIComponent(name)}?limit=500`);
+                const response = await fetch(`/api/search/contractor/${encodeURIComponent(name)}?limit=5000`);
                 const data = await response.json();
                 
                 if (data.result_count === 0) {
@@ -750,6 +749,10 @@
                                 <div class="contractor-stat">
                                     <div class="value">${stat.contracts_bid}</div>
                                     <div class="label">Contracts Bid</div>
+                                </div>
+                                <div class="contractor-stat">
+                                    <div class="value">${stat.contracts_won || 0}</div>
+                                    <div class="label">Contracts Won</div>
                                 </div>
                                 <div class="contractor-stat">
                                     <div class="value">${stat.win_rate.toFixed(1)}%</div>
@@ -784,6 +787,7 @@
                     contractGroups[bid.contract_number].items.push(bid);
                 });
                 
+                // Sort by date descending (newest first) and show ALL contracts
                 const contracts = Object.entries(contractGroups).sort((a, b) => b[1].date.localeCompare(a[1].date));
                 
                 resultsDiv.innerHTML = `
@@ -794,7 +798,7 @@
                     
                     ${statsHtml}
                     
-                    <h4 style="margin: 1.5rem 0 1rem; color: #1e3a5f;">Contracts Bid (${contracts.length} shown)</h4>
+                    <h4 style="margin: 1.5rem 0 1rem; color: #1e3a5f;">Contracts Bid (${contracts.length})</h4>
                     <div class="table-container">
                         <table class="data-table">
                             <thead>
@@ -802,7 +806,7 @@
                                     <th>Contract</th>
                                     <th>Date</th>
                                     <th>County</th>
-                                    <th>Rank</th>
+                                    <th>Result</th>
                                     <th class="number">Total Bid</th>
                                     <th>Items</th>
                                 </tr>
@@ -946,7 +950,7 @@
             resultsDiv.innerHTML = '<div class="loading">Loading</div>';
             
             try {
-                let url = '/api/items?limit=100';
+                let url = '/api/browse/items?limit=100';
                 if (search) url += `&search=${encodeURIComponent(search)}`;
                 
                 const response = await fetch(url);
@@ -981,7 +985,7 @@
                                         <td><a href="#" onclick="document.getElementById('payItemInput').value='${item.item_number}'; document.querySelector('[data-tab=payitem]').click(); searchPayItem(); return false;">${item.item_number}</a></td>
                                         <td>${item.item_description || '—'}</td>
                                         <td>${item.unit || '—'}</td>
-                                        <td class="number">${formatCurrency(item.avg_unit_price)}</td>
+                                        <td class="number">${formatCurrency(item.avg_price)}</td>
                                         <td class="number">${item.bid_count?.toLocaleString() || '—'}</td>
                                         <td class="number">${item.contract_count?.toLocaleString() || '—'}</td>
                                     </tr>
