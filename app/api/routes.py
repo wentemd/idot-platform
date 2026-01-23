@@ -236,26 +236,39 @@ async def search_contractor(
     cursor.execute(query, params)
     rows = cursor.fetchall()
     
-    # Get win statistics - FIXED: use 'Y' instead of 'Yes'
+    # Get win statistics - count DISTINCT contracts, not rows
     cursor.execute("""
         SELECT 
             bidder_name,
             COUNT(DISTINCT contract_number) as contracts_bid,
-            SUM(CASE WHEN is_winner = 'Y' THEN 1 ELSE 0 END) as contracts_won,
-            ROUND(100.0 * SUM(CASE WHEN is_winner = 'Y' THEN 1 ELSE 0 END) / 
+            COUNT(DISTINCT CASE WHEN is_winner = 'Y' THEN contract_number END) as contracts_won,
+            ROUND(100.0 * COUNT(DISTINCT CASE WHEN is_winner = 'Y' THEN contract_number END) / 
                 COUNT(DISTINCT contract_number), 1) as win_rate,
-            ROUND(AVG(bidder_rank), 1) as avg_rank,
-            SUM(CASE WHEN is_winner = 'Y' THEN total_bid_amount ELSE 0 END) as total_won_value
-        FROM (
-            SELECT DISTINCT contract_number, bidder_name, is_winner, bidder_rank, total_bid_amount
-            FROM bids
-            WHERE bidder_name LIKE ?
-        )
+            ROUND(AVG(bidder_rank), 1) as avg_rank
+        FROM bids
+        WHERE bidder_name LIKE ?
         GROUP BY bidder_name
     """, [f"%{name}%"])
     
     stats_rows = cursor.fetchall()
-    stats = [dict(row) for row in stats_rows]
+    
+    # Get total won value separately (need to dedupe by contract first)
+    cursor.execute("""
+        SELECT SUM(total_bid_amount) as total_won_value
+        FROM (
+            SELECT DISTINCT contract_number, total_bid_amount
+            FROM bids
+            WHERE bidder_name LIKE ? AND is_winner = 'Y'
+        )
+    """, [f"%{name}%"])
+    won_value_row = cursor.fetchone()
+    total_won_value = won_value_row['total_won_value'] if won_value_row and won_value_row['total_won_value'] else 0
+    
+    stats = []
+    for row in stats_rows:
+        stat = dict(row)
+        stat['total_won_value'] = total_won_value
+        stats.append(stat)
     
     conn.close()
     
@@ -438,27 +451,24 @@ async def browse_contractors(
     conn = get_db()
     cursor = conn.cursor()
     
-    query = """
+    # Use a subquery to first get distinct contract-level data, then aggregate
+    base_query = """
         SELECT 
             bidder_name,
             COUNT(DISTINCT contract_number) as contracts_bid,
-            SUM(CASE WHEN is_winner = 'Y' THEN 1 ELSE 0 END) as contracts_won,
-            ROUND(100.0 * SUM(CASE WHEN is_winner = 'Y' THEN 1 ELSE 0 END) / 
-                COUNT(DISTINCT contract_number), 1) as win_rate,
-            SUM(CASE WHEN is_winner = 'Y' THEN total_bid_amount ELSE 0 END) as total_won_value
-        FROM (
-            SELECT DISTINCT contract_number, bidder_name, is_winner, total_bid_amount
-            FROM bids
-        )
+            COUNT(DISTINCT CASE WHEN is_winner = 'Y' THEN contract_number END) as contracts_won,
+            ROUND(100.0 * COUNT(DISTINCT CASE WHEN is_winner = 'Y' THEN contract_number END) / 
+                COUNT(DISTINCT contract_number), 1) as win_rate
+        FROM bids
     """
     
     if search:
-        query += " WHERE bidder_name LIKE ?"
-        query += " GROUP BY bidder_name ORDER BY contracts_bid DESC LIMIT ?"
-        cursor.execute(query, [f"%{search}%", limit])
+        base_query += " WHERE bidder_name LIKE ?"
+        base_query += " GROUP BY bidder_name ORDER BY contracts_bid DESC LIMIT ?"
+        cursor.execute(base_query, [f"%{search}%", limit])
     else:
-        query += " GROUP BY bidder_name ORDER BY contracts_bid DESC LIMIT ?"
-        cursor.execute(query, [limit])
+        base_query += " GROUP BY bidder_name ORDER BY contracts_bid DESC LIMIT ?"
+        cursor.execute(base_query, [limit])
     
     rows = cursor.fetchall()
     conn.close()
