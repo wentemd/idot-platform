@@ -784,7 +784,7 @@
                     contractGroups[bid.contract_number].items.push(bid);
                 });
                 
-                const contracts = Object.entries(contractGroups).slice(0, 50);
+                const contracts = Object.entries(contractGroups).sort((a, b) => b[1].date.localCompare(a[1].date));
                 
                 resultsDiv.innerHTML = `
                     <div class="results-header">
@@ -794,7 +794,7 @@
                     
                     ${statsHtml}
                     
-                    <h4 style="margin: 1.5rem 0 1rem; color: #1e3a5f;">Recent Contracts (${contracts.length} shown)</h4>
+                    <h4 style="margin: 1.5rem 0 1rem; color: #1e3a5f;">Contracts Bid (${contracts.length} shown)</h4>
                     <div class="table-container">
                         <table class="data-table">
                             <thead>
