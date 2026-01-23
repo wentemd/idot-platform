@@ -784,7 +784,7 @@
                     contractGroups[bid.contract_number].items.push(bid);
                 });
                 
-                const contracts = Object.entries(contractGroups).sort((a, b) => b[1].date.localCompare(a[1].date));
+                const contracts = Object.entries(contractGroups).sort((a, b) => b[1].date.localeCompare(a[1].date));
                 
                 resultsDiv.innerHTML = `
                     <div class="results-header">
