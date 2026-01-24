@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -24,6 +25,14 @@
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
 
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
         .container {
             max-width: 1400px;
             margin: 0 auto;
@@ -38,6 +47,27 @@
         .header p {
             opacity: 0.9;
             font-size: 1.1rem;
+        }
+
+        .header-buttons {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .header-btn {
+            padding: 0.5rem 1rem;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.3);
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            text-decoration: none;
+            transition: background 0.2s;
+        }
+
+        .header-btn:hover {
+            background: rgba(255,255,255,0.3);
         }
 
         .stats-grid {
@@ -172,6 +202,8 @@
             margin-bottom: 1rem;
             padding-bottom: 0.5rem;
             border-bottom: 2px solid #e0e0e0;
+            flex-wrap: wrap;
+            gap: 0.5rem;
         }
 
         .results-header h3 {
@@ -181,6 +213,21 @@
         .results-count {
             color: #666;
             font-size: 0.9rem;
+        }
+
+        .back-button {
+            padding: 0.4rem 0.8rem;
+            background: #6c757d;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: background 0.2s;
+        }
+
+        .back-button:hover {
+            background: #5a6268;
         }
 
         .summary-card {
@@ -259,7 +306,7 @@
         }
 
         .trend-bar .count {
-            width: 70px;
+            width: 100px;
             text-align: right;
             color: #666;
             font-size: 0.85rem;
@@ -300,6 +347,10 @@
             background: #d4edda;
         }
 
+        .data-table .winner:hover {
+            background: #c3e6cb;
+        }
+
         .badge {
             display: inline-block;
             padding: 0.2rem 0.5rem;
@@ -323,6 +374,52 @@
             overflow-y: auto;
             border: 1px solid #e0e0e0;
             border-radius: 4px;
+        }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+        }
+
+        .comparison-table th {
+            background: #1e3a5f;
+            color: white;
+            padding: 0.5rem;
+            text-align: center;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+            white-space: nowrap;
+        }
+
+        .comparison-table th.item-col {
+            text-align: left;
+            min-width: 200px;
+        }
+
+        .comparison-table td {
+            padding: 0.4rem 0.5rem;
+            border-bottom: 1px solid #e0e0e0;
+            text-align: center;
+        }
+
+        .comparison-table td.item-col {
+            text-align: left;
+            background: #f8f9fa;
+        }
+
+        .comparison-table .winner-col {
+            background: #d4edda;
+        }
+
+        .comparison-table .low-price {
+            color: #28a745;
+            font-weight: bold;
+        }
+
+        .comparison-table .high-price {
+            color: #dc3545;
         }
 
         .loading {
@@ -399,29 +496,80 @@
             margin-top: 2rem;
         }
 
-        .api-links {
-            display: flex;
-            gap: 0.5rem;
-            justify-content: center;
-            flex-wrap: wrap;
-            margin-top: 1rem;
-        }
-
-        .api-links a {
-            padding: 0.4rem 0.8rem;
-            background: #1e3a5f;
-            color: white;
-            text-decoration: none;
-            border-radius: 4px;
-            font-size: 0.85rem;
-        }
-
-        .api-links a:hover {
-            background: #2d5a87;
-        }
-
         .hidden {
             display: none !important;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+
+        .modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            max-width: 700px;
+            max-height: 80vh;
+            overflow-y: auto;
+            margin: 1rem;
+        }
+
+        .modal-content h2 {
+            color: #1e3a5f;
+            margin-bottom: 1rem;
+        }
+
+        .modal-content h3 {
+            color: #2d5a87;
+            margin-top: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .modal-content p {
+            margin-bottom: 1rem;
+        }
+
+        .modal-content ul {
+            margin-left: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .modal-content li {
+            margin-bottom: 0.5rem;
+        }
+
+        .close-modal {
+            float: right;
+            font-size: 1.5rem;
+            font-weight: bold;
+            cursor: pointer;
+            color: #666;
+        }
+
+        .close-modal:hover {
+            color: #333;
+        }
+
+        .disclaimer {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            padding: 1rem;
+            border-radius: 4px;
+            margin-top: 1rem;
         }
 
         @media (max-width: 768px) {
@@ -440,14 +588,26 @@
             .data-table th, .data-table td {
                 padding: 0.5rem 0.3rem;
             }
+
+            .header-content {
+                flex-direction: column;
+                align-items: flex-start;
+            }
         }
     </style>
 </head>
 <body>
     <div class="header">
         <div class="container">
-            <h1>🏗️ IDOT Bid Intelligence Platform</h1>
-            <p>Construction bid pricing data for Illinois • 2018-2025</p>
+            <div class="header-content">
+                <div>
+                    <h1>🏗️ IDOT Bid Intelligence Platform</h1>
+                    <p>Construction bid pricing data for Illinois • 2018-2025</p>
+                </div>
+                <div class="header-buttons">
+                    <button class="header-btn" onclick="showHelp()">❓ Help</button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -476,6 +636,10 @@
                     <button onclick="searchPayItem()">Search</button>
                 </div>
                 <div class="filters">
+                    <label>District:</label>
+                    <select id="payItemDistrict">
+                        <option value="">All</option>
+                    </select>
                     <label>County:</label>
                     <input type="text" id="payItemCounty" placeholder="Optional" style="width: 120px;" />
                     <label>Year From:</label>
@@ -508,8 +672,40 @@
             <!-- Contractor Search -->
             <div id="contractor-tab" class="tab-content hidden">
                 <div class="search-box">
-                    <input type="text" id="contractorInput" placeholder="Enter contractor name (e.g., K-Five, Gallagher)" />
+                    <input type="text" id="contractorInput" placeholder="Enter contractor name (e.g., K-Five, Gallagher, Alliance)" />
                     <button onclick="searchContractor()">Search</button>
+                </div>
+                <div class="filters">
+                    <label>District:</label>
+                    <select id="contractorDistrict">
+                        <option value="">All</option>
+                    </select>
+                    <label>County:</label>
+                    <input type="text" id="contractorCounty" placeholder="Optional" style="width: 120px;" />
+                    <label>Year From:</label>
+                    <select id="contractorYearStart">
+                        <option value="">All</option>
+                        <option value="2025">2025</option>
+                        <option value="2024">2024</option>
+                        <option value="2023">2023</option>
+                        <option value="2022">2022</option>
+                        <option value="2021">2021</option>
+                        <option value="2020">2020</option>
+                        <option value="2019">2019</option>
+                        <option value="2018">2018</option>
+                    </select>
+                    <label>To:</label>
+                    <select id="contractorYearEnd">
+                        <option value="">All</option>
+                        <option value="2025">2025</option>
+                        <option value="2024">2024</option>
+                        <option value="2023">2023</option>
+                        <option value="2022">2022</option>
+                        <option value="2021">2021</option>
+                        <option value="2020">2020</option>
+                        <option value="2019">2019</option>
+                        <option value="2018">2018</option>
+                    </select>
                 </div>
             </div>
 
@@ -534,15 +730,52 @@
     </div>
 
     <div class="footer">
-        <p>IDOT Bid Intelligence Platform v2.0</p>
-        <div class="api-links">
-            <a href="/docs" target="_blank">📚 API Docs</a>
-            <a href="/api/analytics/summary" target="_blank">📊 Stats JSON</a>
-            <a href="/api/health" target="_blank">🔍 Health Check</a>
+        <p>IDOT Bid Intelligence Platform v2.0 • Data may be incomplete or contain errors</p>
+    </div>
+
+    <!-- Help Modal -->
+    <div id="helpModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeHelp()">&times;</span>
+            <h2>📖 How to Use This Platform</h2>
+            
+            <h3>Pay Item Search</h3>
+            <p>Search for specific bid items by their IDOT item code (e.g., 40603080 for HMA Surface Removal). View pricing history across all contractors and projects.</p>
+            <ul>
+                <li>Prices shown are <strong>weighted averages</strong> based on quantity</li>
+                <li>Filter by district, county, or year range</li>
+                <li>Click on any contract number to see full details</li>
+            </ul>
+
+            <h3>Contractor Search</h3>
+            <p>Look up any contractor's bidding history, win rate, and contract performance.</p>
+            <ul>
+                <li>See all contracts a contractor has bid on</li>
+                <li>Green highlighted rows indicate won contracts</li>
+                <li>Filter by district, county, or date range</li>
+            </ul>
+
+            <h3>Contract Lookup</h3>
+            <p>View complete bid tabulation for any contract, showing all bidders and their prices side-by-side.</p>
+            <ul>
+                <li>Compare item-by-item pricing across all bidders</li>
+                <li>Winner's column is highlighted in green</li>
+                <li>Click any item number to search for pricing history</li>
+            </ul>
+
+            <h3>Browse Items</h3>
+            <p>Explore all pay items in the database with their average prices and usage frequency.</p>
+
+            <div class="disclaimer">
+                <strong>⚠️ Disclaimer:</strong> This data is compiled from IDOT bid tabulations and may be incomplete, contain parsing errors, or be missing recent lettings. Always verify critical pricing information against official IDOT sources. This tool is for estimation purposes only and should not be the sole basis for bid decisions.
+            </div>
         </div>
     </div>
 
     <script>
+        // Navigation history
+        let navHistory = [];
+
         // Tab switching
         document.querySelectorAll('.tab-button').forEach(btn => {
             btn.addEventListener('click', () => {
@@ -551,6 +784,7 @@
                 btn.classList.add('active');
                 document.getElementById(btn.dataset.tab + '-tab').classList.remove('hidden');
                 document.getElementById('results').innerHTML = '';
+                navHistory = [];
             });
         });
 
@@ -558,6 +792,7 @@
         async function loadStats() {
             try {
                 const response = await fetch('/api/analytics/summary');
+                if (!response.ok) throw new Error('Failed to load stats');
                 const data = await response.json();
                 
                 document.getElementById('stats').innerHTML = `
@@ -566,28 +801,50 @@
                         <div class="label">Bid Records</div>
                     </div>
                     <div class="stat-card">
-                        <div class="value">${data.unique_contracts.toLocaleString()}</div>
+                        <div class="value">${data.unique_contracts?.toLocaleString() || '—'}</div>
                         <div class="label">Contracts</div>
                     </div>
                     <div class="stat-card">
-                        <div class="value">${data.unique_contractors.toLocaleString()}</div>
+                        <div class="value">${data.unique_contractors?.toLocaleString() || '—'}</div>
                         <div class="label">Contractors</div>
                     </div>
                     <div class="stat-card">
-                        <div class="value">${data.unique_items.toLocaleString()}</div>
+                        <div class="value">${data.unique_items?.toLocaleString() || '—'}</div>
                         <div class="label">Pay Items</div>
                     </div>
                     <div class="stat-card">
-                        <div class="value">${data.unique_counties}</div>
+                        <div class="value">${data.unique_counties || '—'}</div>
                         <div class="label">Counties</div>
                     </div>
                     <div class="stat-card">
-                        <div class="value">${data.year_range.min}-${data.year_range.max}</div>
+                        <div class="value">${data.year_range?.min || '—'}-${data.year_range?.max || '—'}</div>
                         <div class="label">Year Range</div>
                     </div>
                 `;
             } catch (error) {
                 console.error('Error loading stats:', error);
+                document.getElementById('stats').innerHTML = `
+                    <div class="stat-card">
+                        <div class="value">—</div>
+                        <div class="label">Error loading stats</div>
+                    </div>
+                `;
+            }
+        }
+
+        // Load districts for filters
+        async function loadDistricts() {
+            try {
+                const response = await fetch('/api/browse/districts');
+                const data = await response.json();
+                
+                const districtOptions = '<option value="">All</option>' + 
+                    data.districts.map(d => `<option value="${d.district}">${d.district} (${d.contract_count})</option>`).join('');
+                
+                document.getElementById('payItemDistrict').innerHTML = districtOptions;
+                document.getElementById('contractorDistrict').innerHTML = districtOptions;
+            } catch (error) {
+                console.error('Error loading districts:', error);
             }
         }
 
@@ -597,23 +854,72 @@
             return '$' + parseFloat(value).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         }
 
+        // Navigation functions
+        function pushNav(type, params) {
+            navHistory.push({ type, params });
+        }
+
+        function goBack() {
+            if (navHistory.length > 1) {
+                navHistory.pop(); // Remove current
+                const prev = navHistory.pop(); // Get previous
+                if (prev.type === 'contractor') {
+                    searchContractorWithParams(prev.params);
+                } else if (prev.type === 'contract') {
+                    searchContractDirect(prev.params.contract);
+                } else if (prev.type === 'payitem') {
+                    searchPayItemWithParams(prev.params);
+                }
+            }
+        }
+
+        function getBackButton() {
+            if (navHistory.length > 1) {
+                return '<button class="back-button" onclick="goBack()">← Back</button>';
+            }
+            return '';
+        }
+
+        // Help Modal
+        function showHelp() {
+            document.getElementById('helpModal').classList.add('show');
+        }
+
+        function closeHelp() {
+            document.getElementById('helpModal').classList.remove('show');
+        }
+
+        // Close modal on outside click
+        document.getElementById('helpModal').addEventListener('click', function(e) {
+            if (e.target === this) closeHelp();
+        });
+
         // Pay Item Search
         async function searchPayItem() {
-            const itemCode = document.getElementById('payItemInput').value.trim();
-            if (!itemCode) return;
-            
-            const county = document.getElementById('payItemCounty').value.trim();
-            const yearStart = document.getElementById('payItemYearStart').value;
-            const yearEnd = document.getElementById('payItemYearEnd').value;
+            const params = {
+                itemCode: document.getElementById('payItemInput').value.trim(),
+                county: document.getElementById('payItemCounty').value.trim(),
+                district: document.getElementById('payItemDistrict').value,
+                yearStart: document.getElementById('payItemYearStart').value,
+                yearEnd: document.getElementById('payItemYearEnd').value
+            };
+            searchPayItemWithParams(params);
+        }
+
+        async function searchPayItemWithParams(params) {
+            if (!params.itemCode) return;
             
             const resultsDiv = document.getElementById('results');
             resultsDiv.innerHTML = '<div class="loading">Searching</div>';
             
+            pushNav('payitem', params);
+            
             try {
-                let url = `/api/search/pay-item/${encodeURIComponent(itemCode)}?limit=500`;
-                if (county) url += `&county=${encodeURIComponent(county)}`;
-                if (yearStart) url += `&year_start=${yearStart}`;
-                if (yearEnd) url += `&year_end=${yearEnd}`;
+                let url = `/api/search/pay-item/${encodeURIComponent(params.itemCode)}?limit=1000`;
+                if (params.county) url += `&county=${encodeURIComponent(params.county)}`;
+                if (params.district) url += `&district=${encodeURIComponent(params.district)}`;
+                if (params.yearStart) url += `&year_start=${params.yearStart}`;
+                if (params.yearEnd) url += `&year_end=${params.yearEnd}`;
                 
                 const response = await fetch(url);
                 const data = await response.json();
@@ -623,9 +929,13 @@
                     return;
                 }
                 
-                // Calculate summary stats from bids
-                const prices = data.bids.filter(b => b.unit_price > 0).map(b => b.unit_price);
-                const avgPrice = prices.length > 0 ? prices.reduce((a, b) => a + b, 0) / prices.length : 0;
+                // Calculate summary stats using WEIGHTED averages
+                const validBids = data.bids.filter(b => b.unit_price > 0 && b.quantity > 0);
+                const totalExtension = validBids.reduce((sum, b) => sum + (b.extension || 0), 0);
+                const totalQuantity = validBids.reduce((sum, b) => sum + (b.quantity || 0), 0);
+                const weightedAvgPrice = totalQuantity > 0 ? totalExtension / totalQuantity : 0;
+                
+                const prices = validBids.map(b => b.unit_price);
                 const minPrice = prices.length > 0 ? Math.min(...prices) : 0;
                 const maxPrice = prices.length > 0 ? Math.max(...prices) : 0;
                 
@@ -633,22 +943,22 @@
                 const descriptions = [...new Set(data.bids.map(b => b.item_description))];
                 const units = [...new Set(data.bids.map(b => b.unit))];
                 
-                // Build yearly trends chart
+                // Build yearly trends chart with WEIGHTED averages
                 let trendsHtml = '';
                 if (data.yearly_trends && data.yearly_trends.length > 0) {
                     const maxCount = Math.max(...data.yearly_trends.map(t => t.bid_count));
                     trendsHtml = `
                         <div class="yearly-trends">
-                            <h4 style="margin-bottom: 0.75rem; color: #1e3a5f;">Yearly Pricing Trends</h4>
+                            <h4 style="margin-bottom: 0.75rem; color: #1e3a5f;">Yearly Pricing Trends (Weighted Average)</h4>
                             ${data.yearly_trends.map(t => `
                                 <div class="trend-bar">
                                     <span class="year">${t.year}</span>
                                     <div class="bar-container">
                                         <div class="bar" style="width: ${(t.bid_count / maxCount * 100)}%">
-                                            ${formatCurrency(t.avg_price)}
+                                            ${formatCurrency(t.weighted_avg_price)}
                                         </div>
                                     </div>
-                                    <span class="count">${t.bid_count} bids</span>
+                                    <span class="count">${t.bid_count} bids • ${Number(t.total_quantity || 0).toLocaleString()} ${units[0] || 'units'}</span>
                                 </div>
                             `).join('')}
                         </div>
@@ -657,16 +967,17 @@
                 
                 resultsDiv.innerHTML = `
                     <div class="results-header">
-                        <h3>Results for "${itemCode}"</h3>
+                        <h3>Results for "${params.itemCode}"</h3>
                         <span class="results-count">${data.result_count.toLocaleString()} bid records</span>
+                        ${getBackButton()}
                     </div>
                     
                     <div class="summary-card">
-                        <h4>${descriptions[0] || itemCode}</h4>
+                        <h4>${descriptions[0] || params.itemCode}</h4>
                         <div class="summary-stats">
                             <div class="summary-stat">
-                                <div class="value">${formatCurrency(avgPrice)}</div>
-                                <div class="label">Avg Unit Price</div>
+                                <div class="value">${formatCurrency(weightedAvgPrice)}</div>
+                                <div class="label">Weighted Avg Price</div>
                             </div>
                             <div class="summary-stat">
                                 <div class="value">${formatCurrency(minPrice)}</div>
@@ -702,7 +1013,7 @@
                             <tbody>
                                 ${data.bids.slice(0, 200).map(bid => `
                                     <tr class="${bid.is_winner === 'Y' ? 'winner' : ''}">
-                                        <td>${bid.contract_number}</td>
+                                        <td><a href="#" onclick="searchContractDirect('${bid.contract_number}'); return false;">${bid.contract_number}</a></td>
                                         <td>${bid.letting_date}</td>
                                         <td>${bid.county || '—'}</td>
                                         <td>${bid.bidder_name}${bid.is_winner === 'Y' ? ' <span class="badge badge-winner">WIN</span>' : ''}</td>
@@ -724,17 +1035,37 @@
 
         // Contractor Search
         async function searchContractor() {
-            const name = document.getElementById('contractorInput').value.trim();
-            if (!name) return;
+            const params = {
+                name: document.getElementById('contractorInput').value.trim(),
+                county: document.getElementById('contractorCounty').value.trim(),
+                district: document.getElementById('contractorDistrict').value,
+                yearStart: document.getElementById('contractorYearStart').value,
+                yearEnd: document.getElementById('contractorYearEnd').value
+            };
+            searchContractorWithParams(params);
+        }
+
+        async function searchContractorWithParams(params) {
+            if (!params.name) return;
             
             const resultsDiv = document.getElementById('results');
             resultsDiv.innerHTML = '<div class="loading">Searching</div>';
             
+            pushNav('contractor', params);
+            
             try {
-                const response = await fetch(`/api/search/contractor/${encodeURIComponent(name)}?limit=5000`);
+                let url = `/api/search/contractor/${encodeURIComponent(params.name)}`;
+                const queryParams = [];
+                if (params.county) queryParams.push(`county=${encodeURIComponent(params.county)}`);
+                if (params.district) queryParams.push(`district=${encodeURIComponent(params.district)}`);
+                if (params.yearStart) queryParams.push(`year_start=${params.yearStart}`);
+                if (params.yearEnd) queryParams.push(`year_end=${params.yearEnd}`);
+                if (queryParams.length > 0) url += '?' + queryParams.join('&');
+                
+                const response = await fetch(url);
                 const data = await response.json();
                 
-                if (data.result_count === 0) {
+                if (data.contract_count === 0) {
                     resultsDiv.innerHTML = '<div class="no-results">No results found for this contractor.</div>';
                     return;
                 }
@@ -771,29 +1102,14 @@
                     `).join('');
                 }
                 
-                // Group bids by contract
-                const contractGroups = {};
-                data.bids.forEach(bid => {
-                    if (!contractGroups[bid.contract_number]) {
-                        contractGroups[bid.contract_number] = {
-                            date: bid.letting_date,
-                            county: bid.county,
-                            total_bid: bid.total_bid_amount,
-                            is_winner: bid.is_winner,
-                            rank: bid.bidder_rank,
-                            items: []
-                        };
-                    }
-                    contractGroups[bid.contract_number].items.push(bid);
-                });
-                
-                // Sort by date descending (newest first) and show ALL contracts
-                const contracts = Object.entries(contractGroups).sort((a, b) => b[1].date.localeCompare(a[1].date));
+                // Use contracts array from API (already one row per contract)
+                const contracts = data.contracts || [];
                 
                 resultsDiv.innerHTML = `
                     <div class="results-header">
-                        <h3>Results for "${name}"</h3>
-                        <span class="results-count">${data.result_count.toLocaleString()} bid records</span>
+                        <h3>Results for "${params.name}"</h3>
+                        <span class="results-count">${data.contract_count} contracts</span>
+                        ${getBackButton()}
                     </div>
                     
                     ${statsHtml}
@@ -805,6 +1121,7 @@
                                 <tr>
                                     <th>Contract</th>
                                     <th>Date</th>
+                                    <th>District</th>
                                     <th>County</th>
                                     <th>Result</th>
                                     <th class="number">Total Bid</th>
@@ -812,14 +1129,15 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                ${contracts.map(([contract, info]) => `
-                                    <tr class="${info.is_winner === 'Y' ? 'winner' : ''}">
-                                        <td><a href="#" onclick="searchContractDirect('${contract}'); return false;">${contract}</a></td>
-                                        <td>${info.date}</td>
-                                        <td>${info.county || '—'}</td>
-                                        <td>${info.is_winner === 'Y' ? '<span class="badge badge-winner">WON</span>' : `<span class="badge badge-rank">#${info.rank}</span>`}</td>
-                                        <td class="number">${formatCurrency(info.total_bid)}</td>
-                                        <td>${info.items.length} items</td>
+                                ${contracts.map(c => `
+                                    <tr class="${c.is_winner === 'Y' ? 'winner' : ''}">
+                                        <td><a href="#" onclick="searchContractDirect('${c.contract_number}'); return false;">${c.contract_number}</a></td>
+                                        <td>${c.letting_date}</td>
+                                        <td>${c.district || '—'}</td>
+                                        <td>${c.county || '—'}</td>
+                                        <td>${c.is_winner === 'Y' ? '<span class="badge badge-winner">WON</span>' : `<span class="badge badge-rank">#${c.bidder_rank}</span>`}</td>
+                                        <td class="number">${formatCurrency(c.total_bid_amount)}</td>
+                                        <td>${c.item_count} items</td>
                                     </tr>
                                 `).join('')}
                             </tbody>
@@ -842,6 +1160,8 @@
             const resultsDiv = document.getElementById('results');
             resultsDiv.innerHTML = '<div class="loading">Searching</div>';
             
+            pushNav('contract', { contract });
+            
             try {
                 const response = await fetch(`/api/search/contract/${encodeURIComponent(contract)}`);
                 if (!response.ok) throw new Error('Contract not found');
@@ -849,29 +1169,51 @@
                 
                 // Get contract info from first bid
                 const firstBid = data.bids[0];
-                const bidders = [...new Set(data.bids.map(b => b.bidder_name))];
-                const winner = data.bids.find(b => b.is_winner === 'Y');
+                const bidders = data.bidders || [];
+                const winner = bidders.find(b => b.is_winner === 'Y');
+                const items = data.items_comparison || [];
                 
-                // Group by bidder
-                const bidderGroups = {};
-                data.bids.forEach(bid => {
-                    if (!bidderGroups[bid.bidder_name]) {
-                        bidderGroups[bid.bidder_name] = {
-                            rank: bid.bidder_rank,
-                            total: bid.total_bid_amount,
-                            is_winner: bid.is_winner,
-                            items: []
-                        };
-                    }
-                    bidderGroups[bid.bidder_name].items.push(bid);
-                });
+                // Build comparison table header
+                const bidderHeaders = bidders.map(b => 
+                    `<th class="${b.is_winner === 'Y' ? 'winner-col' : ''}">${b.name.substring(0, 15)}${b.name.length > 15 ? '...' : ''}<br><small>#${b.rank} - ${formatCurrency(b.total_bid)}</small></th>`
+                ).join('');
                 
-                const sortedBidders = Object.entries(bidderGroups).sort((a, b) => a[1].rank - b[1].rank);
+                // Build comparison table rows
+                const comparisonRows = items.map(item => {
+                    // Find lowest price for this item
+                    const prices = Object.values(item.bidder_prices).map(p => p.unit_price).filter(p => p > 0);
+                    const lowestPrice = prices.length > 0 ? Math.min(...prices) : 0;
+                    const highestPrice = prices.length > 0 ? Math.max(...prices) : 0;
+                    
+                    const priceCells = bidders.map(b => {
+                        const priceInfo = item.bidder_prices[b.name];
+                        if (!priceInfo) return `<td class="${b.is_winner === 'Y' ? 'winner-col' : ''}">—</td>`;
+                        
+                        let priceClass = b.is_winner === 'Y' ? 'winner-col' : '';
+                        if (priceInfo.unit_price === lowestPrice && prices.length > 1) priceClass += ' low-price';
+                        else if (priceInfo.unit_price === highestPrice && prices.length > 1) priceClass += ' high-price';
+                        
+                        return `<td class="${priceClass}">${formatCurrency(priceInfo.unit_price)}</td>`;
+                    }).join('');
+                    
+                    return `
+                        <tr>
+                            <td class="item-col">
+                                <a href="#" onclick="document.getElementById('payItemInput').value='${item.item_number}'; document.querySelector('[data-tab=payitem]').click(); searchPayItem(); return false;">${item.item_number}</a>
+                                <br><small>${item.item_description?.substring(0, 40) || ''}${item.item_description?.length > 40 ? '...' : ''}</small>
+                            </td>
+                            <td>${item.quantity?.toLocaleString() || '—'}</td>
+                            <td>${item.unit || '—'}</td>
+                            ${priceCells}
+                        </tr>
+                    `;
+                }).join('');
                 
                 resultsDiv.innerHTML = `
                     <div class="results-header">
                         <h3>Contract ${contract}</h3>
-                        <span class="results-count">${data.result_count.toLocaleString()} bid records</span>
+                        <span class="results-count">${items.length} items • ${bidders.length} bidders</span>
+                        ${getBackButton()}
                     </div>
                     
                     <div class="summary-card">
@@ -882,6 +1224,10 @@
                                 <div class="label">Letting Date</div>
                             </div>
                             <div class="summary-stat">
+                                <div class="value">${firstBid?.district || '—'}</div>
+                                <div class="label">District</div>
+                            </div>
+                            <div class="summary-stat">
                                 <div class="value">${firstBid?.county || '—'}</div>
                                 <div class="label">County</div>
                             </div>
@@ -890,52 +1236,41 @@
                                 <div class="label">Bidders</div>
                             </div>
                             <div class="summary-stat">
-                                <div class="value">${winner?.bidder_name?.substring(0, 20) || '—'}${winner?.bidder_name?.length > 20 ? '...' : ''}</div>
+                                <div class="value">${winner?.name?.substring(0, 20) || '—'}${winner?.name?.length > 20 ? '...' : ''}</div>
                                 <div class="label">Winner</div>
                             </div>
                         </div>
                     </div>
                     
-                    <h4 style="margin: 1.5rem 0 1rem; color: #1e3a5f;">All Bidders</h4>
-                    ${sortedBidders.map(([name, info]) => `
-                        <div class="contractor-card" style="${info.is_winner === 'Y' ? 'border-left: 4px solid #28a745;' : ''}">
-                            <h4>${info.is_winner === 'Y' ? '🏆 ' : ''}${name} ${info.is_winner === 'Y' ? '<span class="badge badge-winner">WINNER</span>' : `<span class="badge badge-rank">Rank #${info.rank}</span>`}</h4>
-                            <p style="margin: 0.5rem 0; font-size: 1.1rem;"><strong>Total Bid: ${formatCurrency(info.total)}</strong> • ${info.items.length} items</p>
-                        </div>
-                    `).join('')}
-                    
-                    <h4 style="margin: 1.5rem 0 1rem; color: #1e3a5f;">All Item Bids</h4>
-                    <div class="table-container">
-                        <table class="data-table">
+                    <h4 style="margin: 1.5rem 0 1rem; color: #1e3a5f;">Bid Comparison by Item</h4>
+                    <p style="font-size: 0.85rem; color: #666; margin-bottom: 0.5rem;">
+                        <span class="low-price">Green = lowest price</span> • 
+                        <span class="high-price">Red = highest price</span> • 
+                        Winner column highlighted
+                    </p>
+                    <div class="table-container" style="max-height: 600px;">
+                        <table class="comparison-table">
                             <thead>
                                 <tr>
-                                    <th>Item</th>
-                                    <th>Description</th>
-                                    <th>Bidder</th>
-                                    <th>Rank</th>
-                                    <th class="number">Qty</th>
+                                    <th class="item-col">Item</th>
+                                    <th>Qty</th>
                                     <th>Unit</th>
-                                    <th class="number">Unit Price</th>
-                                    <th class="number">Extension</th>
+                                    ${bidderHeaders}
                                 </tr>
                             </thead>
                             <tbody>
-                                ${data.bids.slice(0, 300).map(bid => `
-                                    <tr class="${bid.is_winner === 'Y' ? 'winner' : ''}">
-                                        <td><a href="#" onclick="document.getElementById('payItemInput').value='${bid.item_number}'; searchPayItem(); return false;">${bid.item_number}</a></td>
-                                        <td>${bid.item_description?.substring(0, 30) || '—'}${bid.item_description?.length > 30 ? '...' : ''}</td>
-                                        <td>${bid.bidder_name?.substring(0, 25) || '—'}${bid.bidder_name?.length > 25 ? '...' : ''}</td>
-                                        <td><span class="badge badge-rank">#${bid.bidder_rank}</span></td>
-                                        <td class="number">${bid.quantity?.toLocaleString() || '—'}</td>
-                                        <td>${bid.unit || '—'}</td>
-                                        <td class="number">${formatCurrency(bid.unit_price)}</td>
-                                        <td class="number">${formatCurrency(bid.extension)}</td>
-                                    </tr>
-                                `).join('')}
+                                ${comparisonRows}
                             </tbody>
                         </table>
                     </div>
-                    ${data.bids.length > 300 ? `<p style="margin-top: 0.5rem; color: #666; font-size: 0.85rem;">Showing first 300 of ${data.bids.length} records</p>` : ''}
+                    
+                    <h4 style="margin: 1.5rem 0 1rem; color: #1e3a5f;">Bidder Totals</h4>
+                    ${bidders.map(b => `
+                        <div class="contractor-card" style="${b.is_winner === 'Y' ? 'border-left: 4px solid #28a745;' : ''}">
+                            <h4>${b.is_winner === 'Y' ? '🏆 ' : ''}${b.name} ${b.is_winner === 'Y' ? '<span class="badge badge-winner">WINNER</span>' : `<span class="badge badge-rank">Rank #${b.rank}</span>`}</h4>
+                            <p style="margin: 0.5rem 0; font-size: 1.1rem;"><strong>Total Bid: ${formatCurrency(b.total_bid)}</strong></p>
+                        </div>
+                    `).join('')}
                 `;
             } catch (error) {
                 resultsDiv.innerHTML = `<div class="error">Error: ${error.message}</div>`;
@@ -974,7 +1309,7 @@
                                     <th>Item Code</th>
                                     <th>Description</th>
                                     <th>Unit</th>
-                                    <th class="number">Avg Price</th>
+                                    <th class="number">Weighted Avg Price</th>
                                     <th class="number">Bid Count</th>
                                     <th class="number">Contracts</th>
                                 </tr>
@@ -1005,8 +1340,9 @@
         document.getElementById('contractInput').addEventListener('keypress', e => { if (e.key === 'Enter') searchContract(); });
         document.getElementById('browseInput').addEventListener('keypress', e => { if (e.key === 'Enter') browseItems(); });
 
-        // Load stats on page load
+        // Load stats and districts on page load
         loadStats();
+        loadDistricts();
     </script>
 </body>
 </html>
