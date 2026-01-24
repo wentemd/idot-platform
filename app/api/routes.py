@@ -11,10 +11,68 @@ import sqlite3
 import os
 import io
 
+from app.api.users import (
+    get_user_by_token, check_and_reset_daily_searches, 
+    increment_daily_searches, get_user_limits
+)
+
 router = APIRouter()
 
 # Rate limiter - will use the one from main.py app state
 limiter = Limiter(key_func=get_remote_address)
+
+
+def get_current_user(request: Request) -> Optional[dict]:
+    """Get current user from session token"""
+    token = request.cookies.get("session_token")
+    if not token:
+        return None
+    return get_user_by_token(token)
+
+
+def check_search_limit(request: Request) -> dict:
+    """Check if user can perform a search, return user limits"""
+    user = get_current_user(request)
+    
+    if not user:
+        # Anonymous user - very limited
+        return {
+            'user': None,
+            'can_search': True,  # Allow some anonymous searches
+            'results_limit': 25,
+            'is_pro': False
+        }
+    
+    limits = get_user_limits(user)
+    
+    # Pro users - unlimited
+    if limits['daily_searches'] > 1000:
+        return {
+            'user': user,
+            'can_search': True,
+            'results_limit': limits['results_per_query'],
+            'is_pro': True
+        }
+    
+    # Free users - check daily limit
+    current_searches = check_and_reset_daily_searches(user['id'])
+    
+    if current_searches >= limits['daily_searches']:
+        return {
+            'user': user,
+            'can_search': False,
+            'results_limit': limits['results_per_query'],
+            'is_pro': False,
+            'searches_remaining': 0
+        }
+    
+    return {
+        'user': user,
+        'can_search': True,
+        'results_limit': limits['results_per_query'],
+        'is_pro': False,
+        'searches_remaining': limits['daily_searches'] - current_searches
+    }
 
 router = APIRouter()
 
@@ -142,6 +200,21 @@ async def search_pay_item(
     Search for a pay item and get pricing history from ALL bidders.
     Returns unit prices, quantities, and yearly trends with WEIGHTED averages.
     """
+    # Check search limits
+    search_check = check_search_limit(request)
+    if not search_check['can_search']:
+        raise HTTPException(
+            status_code=429, 
+            detail="Daily search limit reached. Upgrade to Pro for unlimited searches."
+        )
+    
+    # Apply results limit based on tier
+    effective_limit = min(limit, search_check['results_limit'])
+    
+    # Increment search count for logged-in free users
+    if search_check['user'] and not search_check['is_pro']:
+        increment_daily_searches(search_check['user']['id'])
+    
     conn = get_db()
     cursor = conn.cursor()
     
@@ -187,7 +260,7 @@ async def search_pay_item(
         params.append(year_end)
     
     query += " ORDER BY letting_date DESC, contract_number, bidder_rank LIMIT ?"
-    params.append(limit)
+    params.append(effective_limit)
     
     cursor.execute(query, params)
     rows = cursor.fetchall()
@@ -293,6 +366,18 @@ async def search_contractor(
     Search contractor bidding history.
     Returns contract-level summary with win rates.
     """
+    # Check search limits
+    search_check = check_search_limit(request)
+    if not search_check['can_search']:
+        raise HTTPException(
+            status_code=429, 
+            detail="Daily search limit reached. Upgrade to Pro for unlimited searches."
+        )
+    
+    # Increment search count for logged-in free users
+    if search_check['user'] and not search_check['is_pro']:
+        increment_daily_searches(search_check['user']['id'])
+    
     conn = get_db()
     cursor = conn.cursor()
     
@@ -396,6 +481,18 @@ async def search_contract(request: Request, contract_number: str):
     Get all bids for a specific contract.
     Returns data organized for item-by-item comparison across bidders.
     """
+    # Check search limits
+    search_check = check_search_limit(request)
+    if not search_check['can_search']:
+        raise HTTPException(
+            status_code=429, 
+            detail="Daily search limit reached. Upgrade to Pro for unlimited searches."
+        )
+    
+    # Increment search count for logged-in free users
+    if search_check['user'] and not search_check['is_pro']:
+        increment_daily_searches(search_check['user']['id'])
+    
     conn = get_db()
     cursor = conn.cursor()
     
@@ -793,6 +890,8 @@ async def price_items_from_excel(
     Upload an Excel file with item numbers and quantities.
     Returns the file with weighted average prices filled in.
     
+    PRO FEATURE - requires active subscription.
+    
     Expected Excel format:
     - Column A: Item Number (required)
     - Column B: Item Description (will be filled if empty)
@@ -803,6 +902,21 @@ async def price_items_from_excel(
     
     Limited to 300 items to prevent bulk data extraction.
     """
+    # Check if user has Pro access
+    user = get_current_user(request)
+    if not user:
+        raise HTTPException(
+            status_code=401, 
+            detail="Please log in to use the Estimator Tool"
+        )
+    
+    limits = get_user_limits(user)
+    if not limits['estimator_access']:
+        raise HTTPException(
+            status_code=403, 
+            detail="The Estimator Tool requires a Pro subscription. Start your 7-day free trial today!"
+        )
+    
     import openpyxl
     from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
     from openpyxl.utils import get_column_letter
