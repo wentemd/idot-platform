@@ -21,7 +21,7 @@
         .header {
             background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%);
             color: white;
-            padding: 2rem 1rem;
+            padding: 1.5rem 1rem;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
 
@@ -40,18 +40,19 @@
         }
 
         .header h1 {
-            font-size: 2rem;
-            margin-bottom: 0.5rem;
+            font-size: 1.8rem;
+            margin-bottom: 0.25rem;
         }
 
         .header p {
             opacity: 0.9;
-            font-size: 1.1rem;
+            font-size: 1rem;
         }
 
         .header-buttons {
             display: flex;
             gap: 0.5rem;
+            align-items: center;
         }
 
         .header-btn {
@@ -70,9 +71,91 @@
             background: rgba(255,255,255,0.3);
         }
 
+        .header-btn.primary {
+            background: #28a745;
+            border-color: #28a745;
+        }
+
+        .header-btn.primary:hover {
+            background: #218838;
+        }
+
+        .user-menu {
+            position: relative;
+            display: inline-block;
+        }
+
+        .user-menu-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.3);
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .user-menu-dropdown {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 100%;
+            background: white;
+            border-radius: 4px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            min-width: 200px;
+            z-index: 100;
+        }
+
+        .user-menu-dropdown.show {
+            display: block;
+        }
+
+        .user-menu-dropdown a, .user-menu-dropdown button {
+            display: block;
+            width: 100%;
+            padding: 0.75rem 1rem;
+            text-align: left;
+            color: #333;
+            text-decoration: none;
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+
+        .user-menu-dropdown a:hover, .user-menu-dropdown button:hover {
+            background: #f5f5f5;
+        }
+
+        .user-menu-dropdown .tier-badge {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid #eee;
+            font-size: 0.85rem;
+        }
+
+        .tier-badge.free {
+            color: #666;
+        }
+
+        .tier-badge.pro {
+            color: #28a745;
+            font-weight: 600;
+        }
+
+        .searches-remaining {
+            background: rgba(255,255,255,0.15);
+            padding: 0.3rem 0.6rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            margin-right: 0.5rem;
+        }
+
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
             gap: 1rem;
             margin: 2rem 0;
         }
@@ -86,7 +169,7 @@
         }
 
         .stat-card .value {
-            font-size: 1.8rem;
+            font-size: 1.6rem;
             font-weight: bold;
             color: #1e3a5f;
         }
@@ -130,6 +213,23 @@
             background: #1e3a5f;
             color: white;
             border-color: #1e3a5f;
+        }
+
+        .tab-button.pro-feature {
+            position: relative;
+        }
+
+        .tab-button.pro-feature::after {
+            content: 'PRO';
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: #ffc107;
+            color: #333;
+            font-size: 0.65rem;
+            padding: 0.1rem 0.3rem;
+            border-radius: 3px;
+            font-weight: bold;
         }
 
         .search-box {
@@ -223,7 +323,6 @@
             border-radius: 4px;
             cursor: pointer;
             font-size: 0.85rem;
-            transition: background 0.2s;
         }
 
         .back-button:hover {
@@ -245,7 +344,7 @@
 
         .summary-stats {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
             gap: 1rem;
         }
 
@@ -254,7 +353,7 @@
         }
 
         .summary-stat .value {
-            font-size: 1.4rem;
+            font-size: 1.3rem;
             font-weight: bold;
             color: #2c3e50;
         }
@@ -367,6 +466,11 @@
         .badge-rank {
             background: #6c757d;
             color: white;
+        }
+
+        .badge-pro {
+            background: #ffc107;
+            color: #333;
         }
 
         .table-container {
@@ -522,34 +626,16 @@
             background: white;
             padding: 2rem;
             border-radius: 8px;
-            max-width: 700px;
-            max-height: 80vh;
+            max-width: 450px;
+            width: 90%;
+            max-height: 90vh;
             overflow-y: auto;
-            margin: 1rem;
         }
 
         .modal-content h2 {
             color: #1e3a5f;
-            margin-bottom: 1rem;
-        }
-
-        .modal-content h3 {
-            color: #2d5a87;
-            margin-top: 1.5rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .modal-content p {
-            margin-bottom: 1rem;
-        }
-
-        .modal-content ul {
-            margin-left: 1.5rem;
-            margin-bottom: 1rem;
-        }
-
-        .modal-content li {
-            margin-bottom: 0.5rem;
+            margin-bottom: 1.5rem;
+            text-align: center;
         }
 
         .close-modal {
@@ -564,6 +650,189 @@
             color: #333;
         }
 
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #1e3a5f;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 0.75rem;
+            border: none;
+            border-radius: 4px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn-primary {
+            background: #1e3a5f;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2d5a87;
+        }
+
+        .btn-google {
+            background: white;
+            border: 1px solid #ddd;
+            color: #333;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .btn-google:hover {
+            background: #f5f5f5;
+        }
+
+        .btn-upgrade {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+        }
+
+        .btn-upgrade:hover {
+            background: linear-gradient(135deg, #218838 0%, #1aa179 100%);
+        }
+
+        .divider {
+            text-align: center;
+            margin: 1rem 0;
+            color: #999;
+            position: relative;
+        }
+
+        .divider::before, .divider::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            width: 40%;
+            height: 1px;
+            background: #ddd;
+        }
+
+        .divider::before { left: 0; }
+        .divider::after { right: 0; }
+
+        .form-footer {
+            text-align: center;
+            margin-top: 1rem;
+            color: #666;
+        }
+
+        .form-footer a {
+            color: #1e3a5f;
+            cursor: pointer;
+        }
+
+        .upgrade-prompt {
+            background: linear-gradient(135deg, #fff3cd 0%, #ffeeba 100%);
+            border: 1px solid #ffc107;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+            text-align: center;
+        }
+
+        .upgrade-prompt h4 {
+            color: #856404;
+            margin-bottom: 0.5rem;
+        }
+
+        .upgrade-prompt p {
+            color: #856404;
+            margin-bottom: 1rem;
+        }
+
+        .pricing-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+
+        .pricing-card {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 1.5rem;
+            text-align: center;
+        }
+
+        .pricing-card.featured {
+            border-color: #28a745;
+            position: relative;
+        }
+
+        .pricing-card.featured::before {
+            content: 'BEST VALUE';
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #28a745;
+            color: white;
+            padding: 0.2rem 0.75rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: bold;
+        }
+
+        .pricing-card h3 {
+            color: #1e3a5f;
+            margin-bottom: 0.5rem;
+        }
+
+        .pricing-card .price {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .pricing-card .price span {
+            font-size: 1rem;
+            color: #666;
+        }
+
+        .pricing-card .savings {
+            color: #28a745;
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+        }
+
+        .pricing-card ul {
+            text-align: left;
+            margin: 1rem 0;
+            padding-left: 1.5rem;
+        }
+
+        .pricing-card li {
+            margin-bottom: 0.5rem;
+            color: #666;
+        }
+
         .disclaimer {
             background: #fff3cd;
             border: 1px solid #ffc107;
@@ -574,7 +843,7 @@
 
         @media (max-width: 768px) {
             .header h1 {
-                font-size: 1.5rem;
+                font-size: 1.4rem;
             }
             
             .stats-grid {
@@ -583,10 +852,6 @@
             
             .data-table {
                 font-size: 0.8rem;
-            }
-            
-            .data-table th, .data-table td {
-                padding: 0.5rem 0.3rem;
             }
 
             .header-content {
@@ -602,10 +867,31 @@
             <div class="header-content">
                 <div>
                     <h1>🏗️ IDOT Bid Intelligence Platform</h1>
-                    <p>Construction bid pricing data for Illinois • 2018-2025</p>
+                    <p>Construction bid pricing data for Illinois</p>
                 </div>
                 <div class="header-buttons">
-                    <button class="header-btn" onclick="showHelp()">❓ Help</button>
+                    <!-- Logged out state -->
+                    <div id="loggedOutButtons">
+                        <button class="header-btn" onclick="showHelp()">❓ Help</button>
+                        <button class="header-btn" onclick="showLogin()">Log In</button>
+                        <button class="header-btn primary" onclick="showSignup()">Sign Up Free</button>
+                    </div>
+                    <!-- Logged in state -->
+                    <div id="loggedInButtons" class="hidden">
+                        <span id="searchesRemaining" class="searches-remaining hidden">10 searches left today</span>
+                        <button class="header-btn" onclick="showHelp()">❓ Help</button>
+                        <div class="user-menu">
+                            <button class="user-menu-btn" onclick="toggleUserMenu()">
+                                <span id="userName">Account</span> ▼
+                            </button>
+                            <div id="userMenuDropdown" class="user-menu-dropdown">
+                                <div id="tierBadge" class="tier-badge free">Free Plan</div>
+                                <button onclick="showPricing()">⭐ Upgrade to Pro</button>
+                                <button onclick="manageSubscription()">💳 Manage Subscription</button>
+                                <button onclick="logout()">🚪 Log Out</button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -627,7 +913,7 @@
                 <button class="tab-button" data-tab="contractor">Contractor Search</button>
                 <button class="tab-button" data-tab="contract">Contract Lookup</button>
                 <button class="tab-button" data-tab="browse">Browse Items</button>
-                <button class="tab-button" data-tab="estimator">📊 Estimator Tool</button>
+                <button class="tab-button pro-feature" data-tab="estimator">📊 Estimator Tool</button>
             </div>
 
             <!-- Pay Item Search -->
@@ -726,72 +1012,82 @@
                 </div>
             </div>
 
-            <!-- Estimator Tool -->
+            <!-- Estimator Tool (Pro Only) -->
             <div id="estimator-tab" class="tab-content hidden">
-                <div class="summary-card" style="margin-bottom: 1.5rem;">
-                    <h4>📊 Estimator Pricing Tool</h4>
-                    <p style="margin: 0.5rem 0; color: #666;">
-                        Upload an Excel file with pay items and quantities to get weighted average unit prices based on <strong>winning bid</strong> historical data.
-                    </p>
-                    <ul style="margin: 0.5rem 0 0 1.5rem; color: #666; font-size: 0.9rem;">
-                        <li>Maximum 300 items per upload</li>
-                        <li>Prices are weighted averages from <strong>winning contractors only</strong></li>
-                        <li>Filter by district and year range for more accurate estimates</li>
-                    </ul>
+                <div id="estimatorProPrompt" class="upgrade-prompt">
+                    <h4>🔒 Pro Feature</h4>
+                    <p>The Estimator Tool requires a Pro subscription. Upload Excel files with pay items to get instant weighted average pricing.</p>
+                    <button class="btn btn-upgrade" onclick="showPricing()" style="width: auto; padding: 0.75rem 2rem;">
+                        Start 7-Day Free Trial
+                    </button>
                 </div>
-
-                <div style="margin-bottom: 1rem;">
-                    <a href="/api/estimator/template" class="header-btn" style="background: #1e3a5f; color: white; text-decoration: none; display: inline-block;">
-                        ⬇️ Download Template
-                    </a>
-                </div>
-
-                <form id="estimatorForm" enctype="multipart/form-data">
-                    <div class="search-box" style="flex-direction: column; align-items: stretch;">
-                        <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center;">
-                            <label style="font-weight: 600;">Excel File:</label>
-                            <input type="file" id="estimatorFile" name="file" accept=".xlsx,.xls" required style="flex: 1;" />
-                        </div>
-                    </div>
-                    
-                    <div class="filters" style="margin-top: 1rem;">
-                        <label>Districts (select one or more):</label>
-                        <select id="estimatorDistricts" multiple style="min-width: 200px; height: 80px;">
-                        </select>
-                        <label>Year From:</label>
-                        <select id="estimatorYearStart">
-                            <option value="">All</option>
-                            <option value="2025">2025</option>
-                            <option value="2024">2024</option>
-                            <option value="2023">2023</option>
-                            <option value="2022">2022</option>
-                            <option value="2021">2021</option>
-                            <option value="2020">2020</option>
-                            <option value="2019">2019</option>
-                            <option value="2018">2018</option>
-                        </select>
-                        <label>To:</label>
-                        <select id="estimatorYearEnd">
-                            <option value="">All</option>
-                            <option value="2025">2025</option>
-                            <option value="2024">2024</option>
-                            <option value="2023">2023</option>
-                            <option value="2022">2022</option>
-                            <option value="2021">2021</option>
-                            <option value="2020">2020</option>
-                            <option value="2019">2019</option>
-                            <option value="2018">2018</option>
-                        </select>
-                    </div>
-                    
-                    <div style="margin-top: 1rem;">
-                        <button type="submit" style="padding: 0.7rem 2rem; background: #28a745; color: white; border: none; border-radius: 4px; font-size: 1rem; cursor: pointer;">
-                            🚀 Generate Prices
-                        </button>
-                    </div>
-                </form>
                 
-                <div id="estimatorStatus" style="margin-top: 1rem;"></div>
+                <div id="estimatorContent" class="hidden">
+                    <div class="summary-card" style="margin-bottom: 1.5rem;">
+                        <h4>📊 Estimator Pricing Tool</h4>
+                        <p style="margin: 0.5rem 0; color: #666;">
+                            Upload an Excel file with pay items and quantities to get weighted average unit prices based on <strong>winning bid</strong> historical data.
+                        </p>
+                        <ul style="margin: 0.5rem 0 0 1.5rem; color: #666; font-size: 0.9rem;">
+                            <li>Maximum 300 items per upload</li>
+                            <li>Prices are weighted averages from <strong>winning contractors only</strong></li>
+                            <li>Filter by district and year range for more accurate estimates</li>
+                        </ul>
+                    </div>
+
+                    <div style="margin-bottom: 1rem;">
+                        <a href="/api/estimator/template" class="header-btn" style="background: #1e3a5f; color: white; text-decoration: none; display: inline-block;">
+                            ⬇️ Download Template
+                        </a>
+                    </div>
+
+                    <form id="estimatorForm" enctype="multipart/form-data">
+                        <div class="search-box" style="flex-direction: column; align-items: stretch;">
+                            <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center;">
+                                <label style="font-weight: 600;">Excel File:</label>
+                                <input type="file" id="estimatorFile" name="file" accept=".xlsx,.xls" required style="flex: 1;" />
+                            </div>
+                        </div>
+                        
+                        <div class="filters" style="margin-top: 1rem;">
+                            <label>Districts (select one or more):</label>
+                            <select id="estimatorDistricts" multiple style="min-width: 200px; height: 80px;">
+                            </select>
+                            <label>Year From:</label>
+                            <select id="estimatorYearStart">
+                                <option value="">All</option>
+                                <option value="2025">2025</option>
+                                <option value="2024">2024</option>
+                                <option value="2023">2023</option>
+                                <option value="2022">2022</option>
+                                <option value="2021">2021</option>
+                                <option value="2020">2020</option>
+                                <option value="2019">2019</option>
+                                <option value="2018">2018</option>
+                            </select>
+                            <label>To:</label>
+                            <select id="estimatorYearEnd">
+                                <option value="">All</option>
+                                <option value="2025">2025</option>
+                                <option value="2024">2024</option>
+                                <option value="2023">2023</option>
+                                <option value="2022">2022</option>
+                                <option value="2021">2021</option>
+                                <option value="2020">2020</option>
+                                <option value="2019">2019</option>
+                                <option value="2018">2018</option>
+                            </select>
+                        </div>
+                        
+                        <div style="margin-top: 1rem;">
+                            <button type="submit" style="padding: 0.7rem 2rem; background: #28a745; color: white; border: none; border-radius: 4px; font-size: 1rem; cursor: pointer;">
+                                🚀 Generate Prices
+                            </button>
+                        </div>
+                    </form>
+                    
+                    <div id="estimatorStatus" style="margin-top: 1rem;"></div>
+                </div>
             </div>
 
             <div id="results" class="results"></div>
@@ -802,50 +1098,378 @@
         <p>IDOT Bid Intelligence Platform v2.0 • Data may be incomplete or contain errors</p>
     </div>
 
+    <!-- Login Modal -->
+    <div id="loginModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeLogin()">&times;</span>
+            <h2>Log In</h2>
+            
+            <form id="loginForm" onsubmit="handleLogin(event)">
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="loginEmail" required />
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="loginPassword" required />
+                </div>
+                <div id="loginError" class="error hidden"></div>
+                <button type="submit" class="btn btn-primary">Log In</button>
+            </form>
+            
+            <div class="divider">or</div>
+            
+            <button class="btn btn-google" onclick="loginWithGoogle()">
+                <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+                Continue with Google
+            </button>
+            
+            <div class="form-footer">
+                Don't have an account? <a onclick="showSignup(); closeLogin();">Sign up free</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Signup Modal -->
+    <div id="signupModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeSignup()">&times;</span>
+            <h2>Create Account</h2>
+            
+            <form id="signupForm" onsubmit="handleSignup(event)">
+                <div class="form-group">
+                    <label>Name (optional)</label>
+                    <input type="text" id="signupName" />
+                </div>
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="signupEmail" required />
+                </div>
+                <div class="form-group">
+                    <label>Password (min 8 characters)</label>
+                    <input type="password" id="signupPassword" minlength="8" required />
+                </div>
+                <div id="signupError" class="error hidden"></div>
+                <button type="submit" class="btn btn-primary">Create Account</button>
+            </form>
+            
+            <div class="divider">or</div>
+            
+            <button class="btn btn-google" onclick="loginWithGoogle()">
+                <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+                Continue with Google
+            </button>
+            
+            <div class="form-footer">
+                Already have an account? <a onclick="showLogin(); closeSignup();">Log in</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pricing Modal -->
+    <div id="pricingModal" class="modal">
+        <div class="modal-content" style="max-width: 600px;">
+            <span class="close-modal" onclick="closePricing()">&times;</span>
+            <h2>Upgrade to Pro</h2>
+            <p style="text-align: center; color: #666; margin-bottom: 1.5rem;">
+                Unlock unlimited searches and the powerful Estimator Tool
+            </p>
+            
+            <div class="pricing-cards">
+                <div class="pricing-card">
+                    <h3>Monthly</h3>
+                    <div class="price">$49<span>/mo</span></div>
+                    <div class="savings">&nbsp;</div>
+                    <button class="btn btn-primary" onclick="subscribe('monthly')">Start 7-Day Free Trial</button>
+                </div>
+                <div class="pricing-card featured">
+                    <h3>Annual</h3>
+                    <div class="price">$499<span>/yr</span></div>
+                    <div class="savings">Save $89/year</div>
+                    <button class="btn btn-upgrade" onclick="subscribe('yearly')">Start 7-Day Free Trial</button>
+                </div>
+            </div>
+            
+            <ul style="margin: 1.5rem 0; padding-left: 1.5rem;">
+                <li><strong>Unlimited searches</strong> - no daily limits</li>
+                <li><strong>Estimator Tool</strong> - upload Excel files for instant pricing</li>
+                <li><strong>500 results per query</strong> - vs 50 for free</li>
+                <li><strong>Priority support</strong></li>
+                <li><strong>7-day free trial</strong> - cancel anytime</li>
+            </ul>
+            
+            <p style="text-align: center; color: #666; font-size: 0.9rem;">
+                Cancel anytime during your trial. No charge until trial ends.
+            </p>
+        </div>
+    </div>
+
     <!-- Help Modal -->
     <div id="helpModal" class="modal">
-        <div class="modal-content">
+        <div class="modal-content" style="max-width: 700px;">
             <span class="close-modal" onclick="closeHelp()">&times;</span>
             <h2>📖 How to Use This Platform</h2>
             
-            <h3>Pay Item Search</h3>
-            <p>Search for specific bid items by their IDOT item code (e.g., 40603080 for HMA Surface Removal). View pricing history across all contractors and projects.</p>
-            <ul>
-                <li>Prices shown are <strong>weighted averages</strong> based on quantity</li>
+            <h3 style="color: #2d5a87; margin-top: 1.5rem;">Pay Item Search</h3>
+            <p>Search for specific bid items by their IDOT item code. View pricing history across all contractors and projects.</p>
+            <ul style="margin: 0.5rem 0 1rem 1.5rem;">
+                <li>Prices shown are <strong>weighted averages from winning bids</strong></li>
                 <li>Filter by district, county, or year range</li>
-                <li>Click on any contract number to see full details</li>
             </ul>
 
-            <h3>Contractor Search</h3>
+            <h3 style="color: #2d5a87;">Contractor Search</h3>
             <p>Look up any contractor's bidding history, win rate, and contract performance.</p>
-            <ul>
-                <li>See all contracts a contractor has bid on</li>
-                <li>Green highlighted rows indicate won contracts</li>
-                <li>Filter by district, county, or date range</li>
-            </ul>
 
-            <h3>Contract Lookup</h3>
-            <p>View complete bid tabulation for any contract, showing all bidders and their prices side-by-side.</p>
-            <ul>
-                <li>Compare item-by-item pricing across all bidders</li>
-                <li>Winner's column is highlighted in green</li>
-                <li>Click any item number to search for pricing history</li>
-            </ul>
+            <h3 style="color: #2d5a87;">Contract Lookup</h3>
+            <p>View complete bid tabulation for any contract, showing all bidders' prices side-by-side.</p>
 
-            <h3>Browse Items</h3>
-            <p>Explore all pay items in the database with their average prices and usage frequency.</p>
+            <h3 style="color: #2d5a87;">Estimator Tool <span class="badge badge-pro">PRO</span></h3>
+            <p>Upload an Excel file with pay items and quantities to get instant weighted average pricing from winning bids.</p>
 
             <div class="disclaimer">
-                <strong>⚠️ Disclaimer:</strong> This data is compiled from IDOT bid tabulations and may be incomplete, contain parsing errors, or be missing recent lettings. Always verify critical pricing information against official IDOT sources. This tool is for estimation purposes only and should not be the sole basis for bid decisions.
+                <strong>⚠️ Disclaimer:</strong> This data is compiled from IDOT bid tabulations and may be incomplete or contain parsing errors. Always verify critical pricing information against official IDOT sources.
             </div>
         </div>
     </div>
 
     <script>
-        // Navigation history
+        // ============================================================================
+        // STATE
+        // ============================================================================
+        let currentUser = null;
         let navHistory = [];
 
-        // Tab switching
+        // ============================================================================
+        // AUTH FUNCTIONS
+        // ============================================================================
+        async function checkAuth() {
+            try {
+                const response = await fetch('/api/auth/me');
+                const data = await response.json();
+                
+                if (data.user) {
+                    currentUser = data.user;
+                    updateUIForUser();
+                } else {
+                    currentUser = null;
+                    updateUIForGuest();
+                }
+            } catch (error) {
+                console.error('Auth check failed:', error);
+                currentUser = null;
+                updateUIForGuest();
+            }
+        }
+
+        function updateUIForUser() {
+            document.getElementById('loggedOutButtons').classList.add('hidden');
+            document.getElementById('loggedInButtons').classList.remove('hidden');
+            document.getElementById('userName').textContent = currentUser.name || currentUser.email.split('@')[0];
+            
+            // Update tier badge
+            const tierBadge = document.getElementById('tierBadge');
+            if (currentUser.tier === 'pro' && currentUser.subscription_status === 'active') {
+                tierBadge.textContent = '⭐ Pro Plan';
+                tierBadge.className = 'tier-badge pro';
+                document.querySelector('[onclick="showPricing()"]').classList.add('hidden');
+            } else if (currentUser.subscription_status === 'trialing') {
+                tierBadge.textContent = '⭐ Pro Trial';
+                tierBadge.className = 'tier-badge pro';
+            } else {
+                tierBadge.textContent = 'Free Plan';
+                tierBadge.className = 'tier-badge free';
+            }
+            
+            // Show searches remaining for free users
+            const searchesEl = document.getElementById('searchesRemaining');
+            if (currentUser.limits && currentUser.limits.daily_searches < 1000) {
+                const remaining = currentUser.limits.daily_searches - (currentUser.daily_searches || 0);
+                searchesEl.textContent = `${remaining} searches left today`;
+                searchesEl.classList.remove('hidden');
+            } else {
+                searchesEl.classList.add('hidden');
+            }
+            
+            // Show/hide estimator based on access
+            updateEstimatorAccess();
+        }
+
+        function updateUIForGuest() {
+            document.getElementById('loggedOutButtons').classList.remove('hidden');
+            document.getElementById('loggedInButtons').classList.add('hidden');
+            document.getElementById('searchesRemaining').classList.add('hidden');
+            updateEstimatorAccess();
+        }
+
+        function updateEstimatorAccess() {
+            const hasAccess = currentUser && currentUser.limits && currentUser.limits.estimator_access;
+            document.getElementById('estimatorProPrompt').classList.toggle('hidden', hasAccess);
+            document.getElementById('estimatorContent').classList.toggle('hidden', !hasAccess);
+        }
+
+        // Modal functions
+        function showLogin() { document.getElementById('loginModal').classList.add('show'); }
+        function closeLogin() { document.getElementById('loginModal').classList.remove('show'); }
+        function showSignup() { document.getElementById('signupModal').classList.add('show'); }
+        function closeSignup() { document.getElementById('signupModal').classList.remove('show'); }
+        function showPricing() { 
+            if (!currentUser) {
+                showSignup();
+                return;
+            }
+            document.getElementById('pricingModal').classList.add('show'); 
+        }
+        function closePricing() { document.getElementById('pricingModal').classList.remove('show'); }
+        function showHelp() { document.getElementById('helpModal').classList.add('show'); }
+        function closeHelp() { document.getElementById('helpModal').classList.remove('show'); }
+
+        function toggleUserMenu() {
+            document.getElementById('userMenuDropdown').classList.toggle('show');
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.user-menu')) {
+                document.getElementById('userMenuDropdown').classList.remove('show');
+            }
+        });
+
+        // Close modals when clicking outside
+        document.querySelectorAll('.modal').forEach(modal => {
+            modal.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    this.classList.remove('show');
+                }
+            });
+        });
+
+        async function handleLogin(e) {
+            e.preventDefault();
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            const errorEl = document.getElementById('loginError');
+            
+            try {
+                const response = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+                
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    errorEl.textContent = data.detail || 'Login failed';
+                    errorEl.classList.remove('hidden');
+                    return;
+                }
+                
+                closeLogin();
+                await checkAuth();
+            } catch (error) {
+                errorEl.textContent = 'Network error. Please try again.';
+                errorEl.classList.remove('hidden');
+            }
+        }
+
+        async function handleSignup(e) {
+            e.preventDefault();
+            const name = document.getElementById('signupName').value;
+            const email = document.getElementById('signupEmail').value;
+            const password = document.getElementById('signupPassword').value;
+            const errorEl = document.getElementById('signupError');
+            
+            try {
+                const response = await fetch('/api/auth/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, email, password })
+                });
+                
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    errorEl.textContent = data.detail || 'Signup failed';
+                    errorEl.classList.remove('hidden');
+                    return;
+                }
+                
+                closeSignup();
+                await checkAuth();
+            } catch (error) {
+                errorEl.textContent = 'Network error. Please try again.';
+                errorEl.classList.remove('hidden');
+            }
+        }
+
+        function loginWithGoogle() {
+            window.location.href = '/api/auth/google/login';
+        }
+
+        async function logout() {
+            await fetch('/api/auth/logout', { method: 'POST' });
+            currentUser = null;
+            updateUIForGuest();
+            document.getElementById('userMenuDropdown').classList.remove('show');
+        }
+
+        async function subscribe(plan) {
+            if (!currentUser) {
+                showSignup();
+                closePricing();
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/stripe/create-checkout-session?plan=${plan}`, {
+                    method: 'POST'
+                });
+                const data = await response.json();
+                
+                if (data.checkout_url) {
+                    window.location.href = data.checkout_url;
+                } else {
+                    alert('Error creating checkout session');
+                }
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+
+        async function manageSubscription() {
+            try {
+                const response = await fetch('/api/stripe/create-portal-session', {
+                    method: 'POST'
+                });
+                const data = await response.json();
+                
+                if (data.portal_url) {
+                    window.location.href = data.portal_url;
+                } else {
+                    alert(data.detail || 'No subscription found');
+                }
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+
+        // Check for URL params (subscription success, Google login)
+        function checkUrlParams() {
+            const params = new URLSearchParams(window.location.search);
+            if (params.get('subscription') === 'success') {
+                alert('🎉 Welcome to Pro! Your subscription is now active.');
+                window.history.replaceState({}, '', '/');
+                checkAuth();
+            }
+            if (params.get('login') === 'success') {
+                window.history.replaceState({}, '', '/');
+                checkAuth();
+            }
+        }
+
+        // ============================================================================
+        // TAB SWITCHING
+        // ============================================================================
         document.querySelectorAll('.tab-button').forEach(btn => {
             btn.addEventListener('click', () => {
                 document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
@@ -857,7 +1481,9 @@
             });
         });
 
-        // Load statistics
+        // ============================================================================
+        // DATA LOADING
+        // ============================================================================
         async function loadStats() {
             try {
                 const response = await fetch('/api/analytics/summary');
@@ -885,23 +1511,12 @@
                         <div class="value">${data.unique_counties || '—'}</div>
                         <div class="label">Counties</div>
                     </div>
-                    <div class="stat-card">
-                        <div class="value">${data.year_range?.min || '—'}-${data.year_range?.max || '—'}</div>
-                        <div class="label">Year Range</div>
-                    </div>
                 `;
             } catch (error) {
                 console.error('Error loading stats:', error);
-                document.getElementById('stats').innerHTML = `
-                    <div class="stat-card">
-                        <div class="value">—</div>
-                        <div class="label">Error loading stats</div>
-                    </div>
-                `;
             }
         }
 
-        // Load districts for filters
         async function loadDistricts() {
             try {
                 const response = await fetch('/api/browse/districts');
@@ -913,7 +1528,6 @@
                 document.getElementById('payItemDistrict').innerHTML = districtOptions;
                 document.getElementById('contractorDistrict').innerHTML = districtOptions;
                 
-                // Estimator multi-select (no "All" option)
                 const estimatorOptions = data.districts.map(d => 
                     `<option value="${d.district}">${d.district} (${d.contract_count} contracts)</option>`
                 ).join('');
@@ -923,137 +1537,52 @@
             }
         }
 
-        // Estimator form submission
-        document.getElementById('estimatorForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            const statusDiv = document.getElementById('estimatorStatus');
-            const fileInput = document.getElementById('estimatorFile');
-            
-            if (!fileInput.files || !fileInput.files[0]) {
-                statusDiv.innerHTML = '<div class="error">Please select an Excel file to upload.</div>';
-                return;
-            }
-            
-            const file = fileInput.files[0];
-            
-            // Get selected districts
-            const districtSelect = document.getElementById('estimatorDistricts');
-            const selectedDistricts = Array.from(districtSelect.selectedOptions).map(opt => opt.value);
-            
-            const yearStart = document.getElementById('estimatorYearStart').value;
-            const yearEnd = document.getElementById('estimatorYearEnd').value;
-            
-            // Build form data
-            const formData = new FormData();
-            formData.append('file', file);
-            formData.append('districts', selectedDistricts.join(','));
-            if (yearStart) formData.append('year_start', yearStart);
-            if (yearEnd) formData.append('year_end', yearEnd);
-            
-            statusDiv.innerHTML = '<div class="loading">Processing your file</div>';
-            
-            try {
-                const response = await fetch('/api/estimator/price-items', {
-                    method: 'POST',
-                    body: formData
-                });
-                
-                if (!response.ok) {
-                    const error = await response.json();
-                    throw new Error(error.detail || 'Failed to process file');
-                }
-                
-                // Get summary from headers
-                const itemsPriced = response.headers.get('X-Items-Priced') || '?';
-                const itemsNotFound = response.headers.get('X-Items-Not-Found') || '?';
-                const totalValue = response.headers.get('X-Total-Value') || '0';
-                
-                // Download the file
-                const blob = await response.blob();
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `priced_${file.name}`;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                window.URL.revokeObjectURL(url);
-                
-                statusDiv.innerHTML = `
-                    <div class="summary-card" style="border-left-color: #28a745;">
-                        <h4 style="color: #28a745;">✅ Pricing Complete!</h4>
-                        <div class="summary-stats" style="margin-top: 0.75rem;">
-                            <div class="summary-stat">
-                                <div class="value">${itemsPriced}</div>
-                                <div class="label">Items Priced</div>
-                            </div>
-                            <div class="summary-stat">
-                                <div class="value">${itemsNotFound}</div>
-                                <div class="label">Items Not Found</div>
-                            </div>
-                            <div class="summary-stat">
-                                <div class="value">${formatCurrency(parseFloat(totalValue))}</div>
-                                <div class="label">Total Estimated Value</div>
-                            </div>
-                        </div>
-                        <p style="margin-top: 1rem; color: #666; font-size: 0.9rem;">
-                            Your priced estimate has been downloaded. Check the "NOT FOUND" entries for items that couldn't be priced.
-                        </p>
-                    </div>
-                `;
-            } catch (error) {
-                statusDiv.innerHTML = `<div class="error">Error: ${error.message}</div>`;
-            }
-        });
-
-        // Format currency
+        // ============================================================================
+        // UTILITIES
+        // ============================================================================
         function formatCurrency(value) {
             if (value === null || value === undefined || value === '') return '—';
             return '$' + parseFloat(value).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         }
 
-        // Navigation functions
         function pushNav(type, params) {
             navHistory.push({ type, params });
         }
 
         function goBack() {
             if (navHistory.length > 1) {
-                navHistory.pop(); // Remove current
-                const prev = navHistory.pop(); // Get previous
-                if (prev.type === 'contractor') {
-                    searchContractorWithParams(prev.params);
-                } else if (prev.type === 'contract') {
-                    searchContractDirect(prev.params.contract);
-                } else if (prev.type === 'payitem') {
-                    searchPayItemWithParams(prev.params);
-                }
+                navHistory.pop();
+                const prev = navHistory.pop();
+                if (prev.type === 'contractor') searchContractorWithParams(prev.params);
+                else if (prev.type === 'contract') searchContractDirect(prev.params.contract);
+                else if (prev.type === 'payitem') searchPayItemWithParams(prev.params);
             }
         }
 
         function getBackButton() {
-            if (navHistory.length > 1) {
-                return '<button class="back-button" onclick="goBack()">← Back</button>';
+            return navHistory.length > 1 ? '<button class="back-button" onclick="goBack()">← Back</button>' : '';
+        }
+
+        async function handleSearchError(response, resultsDiv) {
+            if (response.status === 429) {
+                const data = await response.json();
+                resultsDiv.innerHTML = `
+                    <div class="upgrade-prompt">
+                        <h4>Daily Search Limit Reached</h4>
+                        <p>${data.detail}</p>
+                        <button class="btn btn-upgrade" onclick="showPricing()" style="width: auto; padding: 0.75rem 2rem;">
+                            Upgrade to Pro - Unlimited Searches
+                        </button>
+                    </div>
+                `;
+                return true;
             }
-            return '';
+            return false;
         }
 
-        // Help Modal
-        function showHelp() {
-            document.getElementById('helpModal').classList.add('show');
-        }
-
-        function closeHelp() {
-            document.getElementById('helpModal').classList.remove('show');
-        }
-
-        // Close modal on outside click
-        document.getElementById('helpModal').addEventListener('click', function(e) {
-            if (e.target === this) closeHelp();
-        });
-
-        // Pay Item Search
+        // ============================================================================
+        // SEARCH FUNCTIONS
+        // ============================================================================
         async function searchPayItem() {
             const params = {
                 itemCode: document.getElementById('payItemInput').value.trim(),
@@ -1070,17 +1599,22 @@
             
             const resultsDiv = document.getElementById('results');
             resultsDiv.innerHTML = '<div class="loading">Searching</div>';
-            
             pushNav('payitem', params);
             
             try {
-                let url = `/api/search/pay-item/${encodeURIComponent(params.itemCode)}?limit=1000`;
+                let url = `/api/search/pay-item/${encodeURIComponent(params.itemCode)}?limit=500`;
                 if (params.county) url += `&county=${encodeURIComponent(params.county)}`;
                 if (params.district) url += `&district=${encodeURIComponent(params.district)}`;
                 if (params.yearStart) url += `&year_start=${params.yearStart}`;
                 if (params.yearEnd) url += `&year_end=${params.yearEnd}`;
                 
                 const response = await fetch(url);
+                
+                if (await handleSearchError(response, resultsDiv)) {
+                    await checkAuth();
+                    return;
+                }
+                
                 const data = await response.json();
                 
                 if (data.result_count === 0) {
@@ -1088,21 +1622,16 @@
                     return;
                 }
                 
-                // Calculate summary stats using WEIGHTED averages
                 const validBids = data.bids.filter(b => b.unit_price > 0 && b.quantity > 0);
                 const totalExtension = validBids.reduce((sum, b) => sum + (b.extension || 0), 0);
                 const totalQuantity = validBids.reduce((sum, b) => sum + (b.quantity || 0), 0);
                 const weightedAvgPrice = totalQuantity > 0 ? totalExtension / totalQuantity : 0;
-                
                 const prices = validBids.map(b => b.unit_price);
                 const minPrice = prices.length > 0 ? Math.min(...prices) : 0;
                 const maxPrice = prices.length > 0 ? Math.max(...prices) : 0;
-                
-                // Get unique descriptions
                 const descriptions = [...new Set(data.bids.map(b => b.item_description))];
                 const units = [...new Set(data.bids.map(b => b.unit))];
                 
-                // Build yearly trends chart with WEIGHTED averages
                 let trendsHtml = '';
                 if (data.yearly_trends && data.yearly_trends.length > 0) {
                     const maxCount = Math.max(...data.yearly_trends.map(t => t.bid_count));
@@ -1117,7 +1646,7 @@
                                             ${formatCurrency(t.weighted_avg_price)}
                                         </div>
                                     </div>
-                                    <span class="count">${t.bid_count} bids • ${Number(t.total_quantity || 0).toLocaleString()} ${units[0] || 'units'}</span>
+                                    <span class="count">${t.bid_count} bids</span>
                                 </div>
                             `).join('')}
                         </div>
@@ -1127,7 +1656,7 @@
                 resultsDiv.innerHTML = `
                     <div class="results-header">
                         <h3>Results for "${params.itemCode}"</h3>
-                        <span class="results-count">${data.result_count.toLocaleString()} bid records</span>
+                        <span class="results-count">${data.result_count.toLocaleString()} records</span>
                         ${getBackButton()}
                     </div>
                     
@@ -1185,14 +1714,14 @@
                             </tbody>
                         </table>
                     </div>
-                    ${data.bids.length > 200 ? `<p style="margin-top: 0.5rem; color: #666; font-size: 0.85rem;">Showing first 200 of ${data.bids.length} records</p>` : ''}
                 `;
+                
+                await checkAuth();
             } catch (error) {
                 resultsDiv.innerHTML = `<div class="error">Error: ${error.message}</div>`;
             }
         }
 
-        // Contractor Search
         async function searchContractor() {
             const params = {
                 name: document.getElementById('contractorInput').value.trim(),
@@ -1209,7 +1738,6 @@
             
             const resultsDiv = document.getElementById('results');
             resultsDiv.innerHTML = '<div class="loading">Searching</div>';
-            
             pushNav('contractor', params);
             
             try {
@@ -1222,6 +1750,12 @@
                 if (queryParams.length > 0) url += '?' + queryParams.join('&');
                 
                 const response = await fetch(url);
+                
+                if (await handleSearchError(response, resultsDiv)) {
+                    await checkAuth();
+                    return;
+                }
+                
                 const data = await response.json();
                 
                 if (data.contract_count === 0) {
@@ -1229,7 +1763,6 @@
                     return;
                 }
                 
-                // Build contractor stats cards
                 let statsHtml = '';
                 if (data.contractor_stats && data.contractor_stats.length > 0) {
                     statsHtml = data.contractor_stats.map(stat => `
@@ -1249,10 +1782,6 @@
                                     <div class="label">Win Rate</div>
                                 </div>
                                 <div class="contractor-stat">
-                                    <div class="value">${stat.avg_rank?.toFixed(1) || '—'}</div>
-                                    <div class="label">Avg Rank</div>
-                                </div>
-                                <div class="contractor-stat">
                                     <div class="value">${formatCurrency(stat.total_won_value)}</div>
                                     <div class="label">Total Won Value</div>
                                 </div>
@@ -1261,7 +1790,6 @@
                     `).join('');
                 }
                 
-                // Use contracts array from API (already one row per contract)
                 const contracts = data.contracts || [];
                 
                 resultsDiv.innerHTML = `
@@ -1284,7 +1812,6 @@
                                     <th>County</th>
                                     <th>Result</th>
                                     <th class="number">Total Bid</th>
-                                    <th>Items</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -1296,19 +1823,19 @@
                                         <td>${c.county || '—'}</td>
                                         <td>${c.is_winner === 'Y' ? '<span class="badge badge-winner">WON</span>' : `<span class="badge badge-rank">#${c.bidder_rank}</span>`}</td>
                                         <td class="number">${formatCurrency(c.total_bid_amount)}</td>
-                                        <td>${c.item_count} items</td>
                                     </tr>
                                 `).join('')}
                             </tbody>
                         </table>
                     </div>
                 `;
+                
+                await checkAuth();
             } catch (error) {
                 resultsDiv.innerHTML = `<div class="error">Error: ${error.message}</div>`;
             }
         }
 
-        // Contract Search
         async function searchContract() {
             const contract = document.getElementById('contractInput').value.trim();
             if (!contract) return;
@@ -1318,28 +1845,29 @@
         async function searchContractDirect(contract) {
             const resultsDiv = document.getElementById('results');
             resultsDiv.innerHTML = '<div class="loading">Searching</div>';
-            
             pushNav('contract', { contract });
             
             try {
                 const response = await fetch(`/api/search/contract/${encodeURIComponent(contract)}`);
+                
+                if (await handleSearchError(response, resultsDiv)) {
+                    await checkAuth();
+                    return;
+                }
+                
                 if (!response.ok) throw new Error('Contract not found');
                 const data = await response.json();
                 
-                // Get contract info from first bid
                 const firstBid = data.bids[0];
                 const bidders = data.bidders || [];
                 const winner = bidders.find(b => b.is_winner === 'Y');
                 const items = data.items_comparison || [];
                 
-                // Build comparison table header
                 const bidderHeaders = bidders.map(b => 
                     `<th class="${b.is_winner === 'Y' ? 'winner-col' : ''}">${b.name.substring(0, 15)}${b.name.length > 15 ? '...' : ''}<br><small>#${b.rank} - ${formatCurrency(b.total_bid)}</small></th>`
                 ).join('');
                 
-                // Build comparison table rows
                 const comparisonRows = items.map(item => {
-                    // Find lowest price for this item
                     const prices = Object.values(item.bidder_prices).map(p => p.unit_price).filter(p => p > 0);
                     const lowestPrice = prices.length > 0 ? Math.min(...prices) : 0;
                     const highestPrice = prices.length > 0 ? Math.max(...prices) : 0;
@@ -1359,7 +1887,7 @@
                         <tr>
                             <td class="item-col">
                                 <a href="#" onclick="document.getElementById('payItemInput').value='${item.item_number}'; document.querySelector('[data-tab=payitem]').click(); searchPayItem(); return false;">${item.item_number}</a>
-                                <br><small>${item.item_description?.substring(0, 40) || ''}${item.item_description?.length > 40 ? '...' : ''}</small>
+                                <br><small>${item.item_description?.substring(0, 40) || ''}</small>
                             </td>
                             <td>${item.quantity?.toLocaleString() || '—'}</td>
                             <td>${item.unit || '—'}</td>
@@ -1391,22 +1919,13 @@
                                 <div class="label">County</div>
                             </div>
                             <div class="summary-stat">
-                                <div class="value">${bidders.length}</div>
-                                <div class="label">Bidders</div>
-                            </div>
-                            <div class="summary-stat">
-                                <div class="value">${winner?.name?.substring(0, 20) || '—'}${winner?.name?.length > 20 ? '...' : ''}</div>
+                                <div class="value">${winner?.name?.substring(0, 20) || '—'}</div>
                                 <div class="label">Winner</div>
                             </div>
                         </div>
                     </div>
                     
                     <h4 style="margin: 1.5rem 0 1rem; color: #1e3a5f;">Bid Comparison by Item</h4>
-                    <p style="font-size: 0.85rem; color: #666; margin-bottom: 0.5rem;">
-                        <span class="low-price">Green = lowest price</span> • 
-                        <span class="high-price">Red = highest price</span> • 
-                        Winner column highlighted
-                    </p>
                     <div class="table-container" style="max-height: 600px;">
                         <table class="comparison-table">
                             <thead>
@@ -1422,24 +1941,16 @@
                             </tbody>
                         </table>
                     </div>
-                    
-                    <h4 style="margin: 1.5rem 0 1rem; color: #1e3a5f;">Bidder Totals</h4>
-                    ${bidders.map(b => `
-                        <div class="contractor-card" style="${b.is_winner === 'Y' ? 'border-left: 4px solid #28a745;' : ''}">
-                            <h4>${b.is_winner === 'Y' ? '🏆 ' : ''}${b.name} ${b.is_winner === 'Y' ? '<span class="badge badge-winner">WINNER</span>' : `<span class="badge badge-rank">Rank #${b.rank}</span>`}</h4>
-                            <p style="margin: 0.5rem 0; font-size: 1.1rem;"><strong>Total Bid: ${formatCurrency(b.total_bid)}</strong></p>
-                        </div>
-                    `).join('')}
                 `;
+                
+                await checkAuth();
             } catch (error) {
                 resultsDiv.innerHTML = `<div class="error">Error: ${error.message}</div>`;
             }
         }
 
-        // Browse Items
         async function browseItems() {
             const search = document.getElementById('browseInput').value.trim();
-            
             const resultsDiv = document.getElementById('results');
             resultsDiv.innerHTML = '<div class="loading">Loading</div>';
             
@@ -1469,7 +1980,6 @@
                                     <th>Description</th>
                                     <th>Unit</th>
                                     <th class="number">Avg Price (Winners)</th>
-                                    <th class="number">Bid Count</th>
                                     <th class="number">Contracts</th>
                                 </tr>
                             </thead>
@@ -1480,7 +1990,6 @@
                                         <td>${item.item_description || '—'}</td>
                                         <td>${item.unit || '—'}</td>
                                         <td class="number">${formatCurrency(item.avg_price)}</td>
-                                        <td class="number">${item.bid_count?.toLocaleString() || '—'}</td>
                                         <td class="number">${item.contract_count?.toLocaleString() || '—'}</td>
                                     </tr>
                                 `).join('')}
@@ -1493,13 +2002,89 @@
             }
         }
 
+        // Estimator form
+        document.getElementById('estimatorForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const statusDiv = document.getElementById('estimatorStatus');
+            const fileInput = document.getElementById('estimatorFile');
+            
+            if (!fileInput.files || !fileInput.files[0]) {
+                statusDiv.innerHTML = '<div class="error">Please select an Excel file.</div>';
+                return;
+            }
+            
+            const file = fileInput.files[0];
+            const districtSelect = document.getElementById('estimatorDistricts');
+            const selectedDistricts = Array.from(districtSelect.selectedOptions).map(opt => opt.value);
+            const yearStart = document.getElementById('estimatorYearStart').value;
+            const yearEnd = document.getElementById('estimatorYearEnd').value;
+            
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('districts', selectedDistricts.join(','));
+            if (yearStart) formData.append('year_start', yearStart);
+            if (yearEnd) formData.append('year_end', yearEnd);
+            
+            statusDiv.innerHTML = '<div class="loading">Processing your file</div>';
+            
+            try {
+                const response = await fetch('/api/estimator/price-items', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.detail || 'Failed to process file');
+                }
+                
+                const itemsPriced = response.headers.get('X-Items-Priced') || '?';
+                const itemsNotFound = response.headers.get('X-Items-Not-Found') || '?';
+                const totalValue = response.headers.get('X-Total-Value') || '0';
+                
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `priced_${file.name}`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                
+                statusDiv.innerHTML = `
+                    <div class="summary-card" style="border-left-color: #28a745;">
+                        <h4 style="color: #28a745;">✅ Pricing Complete!</h4>
+                        <div class="summary-stats" style="margin-top: 0.75rem;">
+                            <div class="summary-stat">
+                                <div class="value">${itemsPriced}</div>
+                                <div class="label">Items Priced</div>
+                            </div>
+                            <div class="summary-stat">
+                                <div class="value">${itemsNotFound}</div>
+                                <div class="label">Not Found</div>
+                            </div>
+                            <div class="summary-stat">
+                                <div class="value">${formatCurrency(parseFloat(totalValue))}</div>
+                                <div class="label">Total Value</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } catch (error) {
+                statusDiv.innerHTML = `<div class="error">Error: ${error.message}</div>`;
+            }
+        });
+
         // Enter key support
         document.getElementById('payItemInput').addEventListener('keypress', e => { if (e.key === 'Enter') searchPayItem(); });
         document.getElementById('contractorInput').addEventListener('keypress', e => { if (e.key === 'Enter') searchContractor(); });
         document.getElementById('contractInput').addEventListener('keypress', e => { if (e.key === 'Enter') searchContract(); });
         document.getElementById('browseInput').addEventListener('keypress', e => { if (e.key === 'Enter') browseItems(); });
 
-        // Load stats and districts on page load
+        // Initialize
+        checkUrlParams();
+        checkAuth();
         loadStats();
         loadDistricts();
     </script>
