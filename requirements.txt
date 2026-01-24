@@ -10,5 +10,5 @@ aiofiles==23.2.1
 python-dotenv==1.0.0
 slowapi
 openpyxl
-passlib[bcrypt]
+bcrypt
 stripe
