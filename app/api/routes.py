@@ -180,7 +180,7 @@ async def search_pay_item(
     cursor.execute(query, params)
     rows = cursor.fetchall()
     
-    # Get yearly statistics with WEIGHTED averages
+    # Get yearly statistics with WEIGHTED averages - WINNING BIDS ONLY
     stats_query = """
         SELECT 
             substr(letting_date, length(letting_date)-3) as year,
@@ -194,6 +194,7 @@ async def search_pay_item(
         WHERE item_number LIKE ?
         AND unit_price > 0
         AND quantity > 0
+        AND is_winner = 'Y'
     """
     stats_params = [f"%{item_number}%"]
     
@@ -451,7 +452,7 @@ async def get_item_pricing_summary(
 ):
     """
     Get pricing summary for all items with sufficient data.
-    Includes WEIGHTED average prices, price ranges, and bid counts.
+    Includes WEIGHTED average prices from WINNING BIDS, price ranges, and bid counts.
     """
     conn = get_db()
     cursor = conn.cursor()
@@ -469,6 +470,7 @@ async def get_item_pricing_summary(
             SUM(quantity) as total_quantity
         FROM bids
         WHERE unit_price > 0 AND quantity > 0
+        AND is_winner = 'Y'
         GROUP BY item_number, item_description, unit
         HAVING COUNT(*) >= ?
         ORDER BY bid_count DESC
@@ -488,7 +490,7 @@ async def get_item_pricing_summary(
 @router.get("/pricing/county-comparison/{item_number}")
 async def get_county_comparison(item_number: str):
     """
-    Compare pricing for an item across counties with WEIGHTED averages.
+    Compare pricing for an item across counties with WEIGHTED averages from WINNING BIDS.
     """
     conn = get_db()
     cursor = conn.cursor()
@@ -504,6 +506,7 @@ async def get_county_comparison(item_number: str):
         WHERE item_number LIKE ?
         AND unit_price > 0
         AND quantity > 0
+        AND is_winner = 'Y'
         GROUP BY county
         HAVING COUNT(*) >= 3
         ORDER BY weighted_avg_price DESC
@@ -521,7 +524,7 @@ async def get_county_comparison(item_number: str):
 @router.get("/pricing/district-comparison/{item_number}")
 async def get_district_comparison(item_number: str):
     """
-    Compare pricing for an item across districts with WEIGHTED averages.
+    Compare pricing for an item across districts with WEIGHTED averages from WINNING BIDS.
     """
     conn = get_db()
     cursor = conn.cursor()
@@ -539,6 +542,7 @@ async def get_district_comparison(item_number: str):
         AND unit_price > 0
         AND quantity > 0
         AND district IS NOT NULL
+        AND is_winner = 'Y'
         GROUP BY district
         HAVING COUNT(*) >= 3
         ORDER BY weighted_avg_price DESC
@@ -561,7 +565,7 @@ async def browse_items(
     search: Optional[str] = None,
     limit: int = Query(default=100, le=500)
 ):
-    """Browse all pay items with optional search - uses WEIGHTED averages"""
+    """Browse all pay items with optional search - uses WEIGHTED averages from WINNING BIDS"""
     conn = get_db()
     cursor = conn.cursor()
     
@@ -578,6 +582,7 @@ async def browse_items(
             WHERE (item_number LIKE ? OR item_description LIKE ?)
             AND unit_price > 0
             AND quantity > 0
+            AND is_winner = 'Y'
             GROUP BY item_number, item_description, unit
             ORDER BY bid_count DESC
             LIMIT ?
@@ -594,6 +599,7 @@ async def browse_items(
             FROM bids
             WHERE unit_price > 0
             AND quantity > 0
+            AND is_winner = 'Y'
             GROUP BY item_number, item_description, unit
             ORDER BY bid_count DESC
             LIMIT ?
@@ -851,7 +857,7 @@ async def price_items_from_excel(
     }
     
     for item in items_to_price:
-        # Query for weighted average price
+        # Query for weighted average price - WINNING BIDS ONLY
         query = f"""
             SELECT 
                 item_number,
@@ -865,6 +871,7 @@ async def price_items_from_excel(
             WHERE item_number = ?
             AND unit_price > 0
             AND quantity > 0
+            AND is_winner = 'Y'
             {district_clause}
             {year_clause}
             GROUP BY item_number
