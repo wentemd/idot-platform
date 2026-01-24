@@ -11,5 +11,4 @@ python-dotenv==1.0.0
 slowapi
 openpyxl
 passlib[bcrypt]
-httpx
 stripe
