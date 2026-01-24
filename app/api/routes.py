@@ -2,10 +2,12 @@
 IDOT Bid Intelligence Platform - API Routes
 Routes for the flat bids table schema
 """
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query, UploadFile, File, Form
+from fastapi.responses import StreamingResponse
 from typing import Optional, List
 import sqlite3
 import os
+import io
 
 router = APIRouter()
 
@@ -737,3 +739,307 @@ async def browse_counties():
     return {
         "counties": [dict(row) for row in rows]
     }
+
+
+# ============================================================================
+# ESTIMATOR EXCEL UPLOAD
+# ============================================================================
+
+@router.post("/estimator/price-items")
+async def price_items_from_excel(
+    file: UploadFile = File(...),
+    districts: str = Form(default=""),
+    year_start: Optional[int] = Form(default=None),
+    year_end: Optional[int] = Form(default=None)
+):
+    """
+    Upload an Excel file with item numbers and quantities.
+    Returns the file with weighted average prices filled in.
+    
+    Expected Excel format:
+    - Column A: Item Number (required)
+    - Column B: Item Description (will be filled if empty)
+    - Column C: Quantity (required for extension calc)
+    - Column D: Unit (will be filled if empty)
+    - Column E: Unit Price (will be filled by system)
+    - Column F: Extension (will be calculated)
+    
+    Limited to 300 items to prevent bulk data extraction.
+    """
+    import openpyxl
+    from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+    from openpyxl.utils import get_column_letter
+    
+    # Read the uploaded file
+    try:
+        contents = await file.read()
+        wb = openpyxl.load_workbook(io.BytesIO(contents))
+        ws = wb.active
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Could not read Excel file: {str(e)}")
+    
+    # Parse districts
+    district_list = [d.strip() for d in districts.split(',') if d.strip()] if districts else []
+    
+    # Find header row and data start
+    header_row = 1
+    data_start = 2
+    
+    # Check if first row looks like headers
+    first_cell = str(ws.cell(row=1, column=1).value or "").lower()
+    if 'item' in first_cell or 'number' in first_cell or 'code' in first_cell:
+        header_row = 1
+        data_start = 2
+    else:
+        # No header, data starts at row 1
+        header_row = 0
+        data_start = 1
+    
+    # Collect item numbers from column A
+    items_to_price = []
+    row = data_start
+    while row <= ws.max_row and len(items_to_price) < 300:
+        item_num = ws.cell(row=row, column=1).value
+        if item_num:
+            item_num = str(item_num).strip()
+            if item_num:
+                quantity = ws.cell(row=row, column=3).value
+                try:
+                    quantity = float(quantity) if quantity else 0
+                except:
+                    quantity = 0
+                items_to_price.append({
+                    'row': row,
+                    'item_number': item_num,
+                    'quantity': quantity
+                })
+        row += 1
+    
+    if len(items_to_price) == 0:
+        raise HTTPException(status_code=400, detail="No item numbers found in column A")
+    
+    if row <= ws.max_row:
+        # More than 300 items
+        raise HTTPException(
+            status_code=400, 
+            detail=f"File contains more than 300 items. Please limit to 300 items per upload. Found items up to row {row}."
+        )
+    
+    # Get pricing from database
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    # Build WHERE clause for districts and years
+    district_clause = ""
+    year_clause = ""
+    
+    if district_list:
+        placeholders = ','.join(['?' for _ in district_list])
+        district_clause = f" AND district IN ({placeholders})"
+    
+    if year_start:
+        year_clause += f" AND CAST(substr(letting_date, length(letting_date)-3) AS INTEGER) >= {year_start}"
+    if year_end:
+        year_clause += f" AND CAST(substr(letting_date, length(letting_date)-3) AS INTEGER) <= {year_end}"
+    
+    # Price each item
+    results_summary = {
+        'items_requested': len(items_to_price),
+        'items_priced': 0,
+        'items_not_found': 0,
+        'total_value': 0
+    }
+    
+    for item in items_to_price:
+        # Query for weighted average price
+        query = f"""
+            SELECT 
+                item_number,
+                item_description,
+                unit,
+                SUM(extension) / NULLIF(SUM(quantity), 0) as weighted_avg_price,
+                COUNT(*) as bid_count,
+                MIN(unit_price) as min_price,
+                MAX(unit_price) as max_price
+            FROM bids
+            WHERE item_number = ?
+            AND unit_price > 0
+            AND quantity > 0
+            {district_clause}
+            {year_clause}
+            GROUP BY item_number
+        """
+        
+        params = [item['item_number']]
+        if district_list:
+            params.extend(district_list)
+        
+        cursor.execute(query, params)
+        result = cursor.fetchone()
+        
+        row_num = item['row']
+        
+        if result and result['weighted_avg_price']:
+            # Fill in the data
+            price = result['weighted_avg_price']
+            extension = price * item['quantity'] if item['quantity'] else 0
+            
+            # Column B: Description (if empty)
+            if not ws.cell(row=row_num, column=2).value:
+                ws.cell(row=row_num, column=2).value = result['item_description']
+            
+            # Column D: Unit (if empty)
+            if not ws.cell(row=row_num, column=4).value:
+                ws.cell(row=row_num, column=4).value = result['unit']
+            
+            # Column E: Unit Price
+            ws.cell(row=row_num, column=5).value = round(price, 2)
+            ws.cell(row=row_num, column=5).number_format = '$#,##0.00'
+            
+            # Column F: Extension
+            ws.cell(row=row_num, column=6).value = round(extension, 2)
+            ws.cell(row=row_num, column=6).number_format = '$#,##0.00'
+            
+            # Column G: Bid count (for reference)
+            ws.cell(row=row_num, column=7).value = result['bid_count']
+            
+            results_summary['items_priced'] += 1
+            results_summary['total_value'] += extension
+        else:
+            # Item not found - mark it
+            ws.cell(row=row_num, column=5).value = "NOT FOUND"
+            ws.cell(row=row_num, column=5).font = Font(color="FF0000", italic=True)
+            results_summary['items_not_found'] += 1
+    
+    conn.close()
+    
+    # Add/update headers if they exist
+    if header_row > 0:
+        headers = ['Item Number', 'Description', 'Quantity', 'Unit', 'Unit Price', 'Extension', 'Bid Count']
+        header_fill = PatternFill(start_color="1E3A5F", end_color="1E3A5F", fill_type="solid")
+        header_font = Font(color="FFFFFF", bold=True)
+        
+        for col, header in enumerate(headers, 1):
+            cell = ws.cell(row=1, column=col)
+            cell.value = header
+            cell.fill = header_fill
+            cell.font = header_font
+            cell.alignment = Alignment(horizontal='center')
+    
+    # Add summary at bottom
+    summary_row = ws.max_row + 2
+    ws.cell(row=summary_row, column=1).value = "PRICING SUMMARY"
+    ws.cell(row=summary_row, column=1).font = Font(bold=True)
+    
+    ws.cell(row=summary_row + 1, column=1).value = "Items Requested:"
+    ws.cell(row=summary_row + 1, column=2).value = results_summary['items_requested']
+    
+    ws.cell(row=summary_row + 2, column=1).value = "Items Priced:"
+    ws.cell(row=summary_row + 2, column=2).value = results_summary['items_priced']
+    
+    ws.cell(row=summary_row + 3, column=1).value = "Items Not Found:"
+    ws.cell(row=summary_row + 3, column=2).value = results_summary['items_not_found']
+    
+    ws.cell(row=summary_row + 4, column=1).value = "Total Estimated Value:"
+    ws.cell(row=summary_row + 4, column=2).value = results_summary['total_value']
+    ws.cell(row=summary_row + 4, column=2).number_format = '$#,##0.00'
+    
+    if district_list:
+        ws.cell(row=summary_row + 5, column=1).value = "Districts Used:"
+        ws.cell(row=summary_row + 5, column=2).value = ', '.join(district_list)
+    
+    if year_start or year_end:
+        ws.cell(row=summary_row + 6, column=1).value = "Year Range:"
+        ws.cell(row=summary_row + 6, column=2).value = f"{year_start or 'All'} - {year_end or 'All'}"
+    
+    # Adjust column widths
+    ws.column_dimensions['A'].width = 15
+    ws.column_dimensions['B'].width = 40
+    ws.column_dimensions['C'].width = 12
+    ws.column_dimensions['D'].width = 10
+    ws.column_dimensions['E'].width = 14
+    ws.column_dimensions['F'].width = 14
+    ws.column_dimensions['G'].width = 12
+    
+    # Save to bytes
+    output = io.BytesIO()
+    wb.save(output)
+    output.seek(0)
+    
+    # Return as downloadable file
+    filename = f"priced_estimate_{file.filename}" if file.filename else "priced_estimate.xlsx"
+    
+    return StreamingResponse(
+        output,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={
+            "Content-Disposition": f"attachment; filename={filename}",
+            "X-Items-Priced": str(results_summary['items_priced']),
+            "X-Items-Not-Found": str(results_summary['items_not_found']),
+            "X-Total-Value": str(round(results_summary['total_value'], 2))
+        }
+    )
+
+
+@router.get("/estimator/template")
+async def get_estimator_template():
+    """
+    Download a blank template Excel file for the estimator tool.
+    """
+    import openpyxl
+    from openpyxl.styles import Font, PatternFill, Alignment
+    
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "Estimate Items"
+    
+    # Headers
+    headers = ['Item Number', 'Description', 'Quantity', 'Unit', 'Unit Price', 'Extension', 'Bid Count']
+    header_fill = PatternFill(start_color="1E3A5F", end_color="1E3A5F", fill_type="solid")
+    header_font = Font(color="FFFFFF", bold=True)
+    
+    for col, header in enumerate(headers, 1):
+        cell = ws.cell(row=1, column=col)
+        cell.value = header
+        cell.fill = header_fill
+        cell.font = header_font
+        cell.alignment = Alignment(horizontal='center')
+    
+    # Example rows
+    examples = [
+        ('40603080', '', 1000, 'SQ YD', '', '', ''),
+        ('60105100', '', 500, 'TON', '', '', ''),
+        ('78004000', '', 200, 'LIN FT', '', '', ''),
+    ]
+    
+    for row_num, example in enumerate(examples, 2):
+        for col_num, value in enumerate(example, 1):
+            ws.cell(row=row_num, column=col_num).value = value if value else None
+    
+    # Instructions
+    ws.cell(row=7, column=1).value = "Instructions:"
+    ws.cell(row=7, column=1).font = Font(bold=True)
+    ws.cell(row=8, column=1).value = "1. Enter IDOT item numbers in Column A"
+    ws.cell(row=9, column=1).value = "2. Enter quantities in Column C"
+    ws.cell(row=10, column=1).value = "3. Upload this file to get weighted average prices"
+    ws.cell(row=11, column=1).value = "4. Maximum 300 items per upload"
+    
+    # Adjust column widths
+    ws.column_dimensions['A'].width = 15
+    ws.column_dimensions['B'].width = 40
+    ws.column_dimensions['C'].width = 12
+    ws.column_dimensions['D'].width = 10
+    ws.column_dimensions['E'].width = 14
+    ws.column_dimensions['F'].width = 14
+    ws.column_dimensions['G'].width = 12
+    
+    # Save to bytes
+    output = io.BytesIO()
+    wb.save(output)
+    output.seek(0)
+    
+    return StreamingResponse(
+        output,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": "attachment; filename=estimator_template.xlsx"}
+    )
