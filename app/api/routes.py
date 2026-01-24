@@ -1,13 +1,20 @@
 """
 IDOT Bid Intelligence Platform - API Routes
-Routes for the flat bids table schema
+Routes for the flat bids table schema with security hardening
 """
-from fastapi import APIRouter, HTTPException, Query, UploadFile, File, Form
+from fastapi import APIRouter, HTTPException, Query, UploadFile, File, Form, Request
 from fastapi.responses import StreamingResponse
 from typing import Optional, List
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 import sqlite3
 import os
 import io
+
+router = APIRouter()
+
+# Rate limiter - will use the one from main.py app state
+limiter = Limiter(key_func=get_remote_address)
 
 router = APIRouter()
 
@@ -23,7 +30,8 @@ def get_db():
 # ============================================================================
 
 @router.get("/stats")
-async def get_stats():
+@limiter.limit("60/minute")
+async def get_stats(request: Request):
     """Get overall database statistics"""
     conn = get_db()
     cursor = conn.cursor()
@@ -51,7 +59,8 @@ async def get_stats():
 
 
 @router.get("/analytics/summary")
-async def get_analytics_summary():
+@limiter.limit("60/minute")
+async def get_analytics_summary(request: Request):
     """Get comprehensive analytics summary for dashboard"""
     conn = get_db()
     cursor = conn.cursor()
@@ -102,7 +111,8 @@ async def get_analytics_summary():
 
 
 @router.get("/health")
-async def health_check():
+@limiter.limit("60/minute")
+async def health_check(request: Request):
     """Health check endpoint"""
     try:
         conn = get_db()
@@ -118,13 +128,15 @@ async def health_check():
 # ============================================================================
 
 @router.get("/search/pay-item/{item_number}")
+@limiter.limit("30/minute")
 async def search_pay_item(
+    request: Request,
     item_number: str,
     county: Optional[str] = None,
     district: Optional[str] = None,
     year_start: Optional[int] = None,
     year_end: Optional[int] = None,
-    limit: int = Query(default=1000, le=5000)
+    limit: int = Query(default=500, le=1000)
 ):
     """
     Search for a pay item and get pricing history from ALL bidders.
@@ -223,9 +235,11 @@ async def search_pay_item(
 
 
 @router.get("/search/pay-item-exact/{item_number}")
+@limiter.limit("30/minute")
 async def search_pay_item_exact(
+    request: Request,
     item_number: str,
-    limit: int = Query(default=500, le=2000)
+    limit: int = Query(default=200, le=500)
 ):
     """Exact match search for a specific pay item code"""
     conn = get_db()
@@ -266,7 +280,9 @@ async def search_pay_item_exact(
 # ============================================================================
 
 @router.get("/search/contractor/{name}")
+@limiter.limit("30/minute")
 async def search_contractor(
+    request: Request,
     name: str,
     county: Optional[str] = None,
     district: Optional[str] = None,
@@ -374,7 +390,8 @@ async def search_contractor(
 # ============================================================================
 
 @router.get("/search/contract/{contract_number}")
-async def search_contract(contract_number: str):
+@limiter.limit("30/minute")
+async def search_contract(request: Request, contract_number: str):
     """
     Get all bids for a specific contract.
     Returns data organized for item-by-item comparison across bidders.
@@ -446,9 +463,11 @@ async def search_contract(contract_number: str):
 # ============================================================================
 
 @router.get("/pricing/item-summary")
+@limiter.limit("20/minute")
 async def get_item_pricing_summary(
+    request: Request,
     min_occurrences: int = Query(default=10, description="Minimum bid count to include"),
-    limit: int = Query(default=100, le=500)
+    limit: int = Query(default=50, le=100)
 ):
     """
     Get pricing summary for all items with sufficient data.
@@ -488,7 +507,8 @@ async def get_item_pricing_summary(
 
 
 @router.get("/pricing/county-comparison/{item_number}")
-async def get_county_comparison(item_number: str):
+@limiter.limit("20/minute")
+async def get_county_comparison(request: Request, item_number: str):
     """
     Compare pricing for an item across counties with WEIGHTED averages from WINNING BIDS.
     """
@@ -522,7 +542,8 @@ async def get_county_comparison(item_number: str):
 
 
 @router.get("/pricing/district-comparison/{item_number}")
-async def get_district_comparison(item_number: str):
+@limiter.limit("20/minute")
+async def get_district_comparison(request: Request, item_number: str):
     """
     Compare pricing for an item across districts with WEIGHTED averages from WINNING BIDS.
     """
@@ -561,9 +582,11 @@ async def get_district_comparison(item_number: str):
 # ============================================================================
 
 @router.get("/browse/items")
+@limiter.limit("30/minute")
 async def browse_items(
+    request: Request,
     search: Optional[str] = None,
-    limit: int = Query(default=100, le=500)
+    limit: int = Query(default=50, le=100)
 ):
     """Browse all pay items with optional search - uses WEIGHTED averages from WINNING BIDS"""
     conn = get_db()
@@ -616,9 +639,11 @@ async def browse_items(
 
 
 @router.get("/browse/contractors")
+@limiter.limit("30/minute")
 async def browse_contractors(
+    request: Request,
     search: Optional[str] = None,
-    limit: int = Query(default=100, le=500)
+    limit: int = Query(default=50, le=100)
 ):
     """Browse all contractors with optional search"""
     conn = get_db()
@@ -653,11 +678,13 @@ async def browse_contractors(
 
 
 @router.get("/browse/contracts")
+@limiter.limit("30/minute")
 async def browse_contracts(
+    request: Request,
     county: Optional[str] = None,
     district: Optional[str] = None,
     year: Optional[int] = None,
-    limit: int = Query(default=100, le=500)
+    limit: int = Query(default=50, le=100)
 ):
     """Browse contracts with optional filters"""
     conn = get_db()
@@ -704,7 +731,8 @@ async def browse_contracts(
 
 
 @router.get("/browse/districts")
-async def browse_districts():
+@limiter.limit("60/minute")
+async def browse_districts(request: Request):
     """Get list of all districts"""
     conn = get_db()
     cursor = conn.cursor()
@@ -726,7 +754,8 @@ async def browse_districts():
 
 
 @router.get("/browse/counties")
-async def browse_counties():
+@limiter.limit("60/minute")
+async def browse_counties(request: Request):
     """Get list of all counties"""
     conn = get_db()
     cursor = conn.cursor()
@@ -752,7 +781,9 @@ async def browse_counties():
 # ============================================================================
 
 @router.post("/estimator/price-items")
+@limiter.limit("10/minute")
 async def price_items_from_excel(
+    request: Request,
     file: UploadFile = File(...),
     districts: str = Form(default=""),
     year_start: Optional[int] = Form(default=None),
@@ -989,7 +1020,8 @@ async def price_items_from_excel(
 
 
 @router.get("/estimator/template")
-async def get_estimator_template():
+@limiter.limit("10/minute")
+async def get_estimator_template(request: Request):
     """
     Download a blank template Excel file for the estimator tool.
     """
