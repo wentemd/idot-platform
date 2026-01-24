@@ -2,7 +2,7 @@
 Authentication routes - login, register
 """
 from fastapi import APIRouter, HTTPException, Request, Response
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel
 from typing import Optional
 
 from app.api.users import (
@@ -15,12 +15,12 @@ router = APIRouter()
 
 # Pydantic models
 class UserRegister(BaseModel):
-    email: EmailStr
+    email: str
     password: str
     name: Optional[str] = None
 
 class UserLogin(BaseModel):
-    email: EmailStr
+    email: str
     password: str
 
 
