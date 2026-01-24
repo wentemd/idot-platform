@@ -731,11 +731,11 @@
                 <div class="summary-card" style="margin-bottom: 1.5rem;">
                     <h4>📊 Estimator Pricing Tool</h4>
                     <p style="margin: 0.5rem 0; color: #666;">
-                        Upload an Excel file with pay items and quantities to get weighted average unit prices based on historical bid data.
+                        Upload an Excel file with pay items and quantities to get weighted average unit prices based on <strong>winning bid</strong> historical data.
                     </p>
                     <ul style="margin: 0.5rem 0 0 1.5rem; color: #666; font-size: 0.9rem;">
                         <li>Maximum 300 items per upload</li>
-                        <li>Prices are weighted averages based on quantity</li>
+                        <li>Prices are weighted averages from <strong>winning contractors only</strong></li>
                         <li>Filter by district and year range for more accurate estimates</li>
                     </ul>
                 </div>
@@ -1108,7 +1108,7 @@
                     const maxCount = Math.max(...data.yearly_trends.map(t => t.bid_count));
                     trendsHtml = `
                         <div class="yearly-trends">
-                            <h4 style="margin-bottom: 0.75rem; color: #1e3a5f;">Yearly Pricing Trends (Weighted Average)</h4>
+                            <h4 style="margin-bottom: 0.75rem; color: #1e3a5f;">Yearly Pricing Trends (Weighted Avg - Winning Bids)</h4>
                             ${data.yearly_trends.map(t => `
                                 <div class="trend-bar">
                                     <span class="year">${t.year}</span>
@@ -1136,7 +1136,7 @@
                         <div class="summary-stats">
                             <div class="summary-stat">
                                 <div class="value">${formatCurrency(weightedAvgPrice)}</div>
-                                <div class="label">Weighted Avg Price</div>
+                                <div class="label">Weighted Avg (Winners)</div>
                             </div>
                             <div class="summary-stat">
                                 <div class="value">${formatCurrency(minPrice)}</div>
@@ -1468,7 +1468,7 @@
                                     <th>Item Code</th>
                                     <th>Description</th>
                                     <th>Unit</th>
-                                    <th class="number">Weighted Avg Price</th>
+                                    <th class="number">Avg Price (Winners)</th>
                                     <th class="number">Bid Count</th>
                                     <th class="number">Contracts</th>
                                 </tr>
