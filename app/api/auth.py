@@ -1,17 +1,14 @@
 """
-Authentication routes - login, register, Google OAuth
+Authentication routes - login, register
 """
-from fastapi import APIRouter, HTTPException, Request, Response, Depends
-from fastapi.responses import RedirectResponse
+from fastapi import APIRouter, HTTPException, Request, Response
 from pydantic import BaseModel, EmailStr
 from typing import Optional
-import os
-import httpx
 
 from app.api.users import (
-    create_user, get_user_by_email, get_user_by_google_id,
+    create_user, get_user_by_email,
     verify_password, create_session, get_user_by_token,
-    delete_session, get_user_limits, update_user
+    delete_session, get_user_limits
 )
 
 router = APIRouter()
@@ -25,15 +22,6 @@ class UserRegister(BaseModel):
 class UserLogin(BaseModel):
     email: EmailStr
     password: str
-
-class GoogleAuthCallback(BaseModel):
-    code: str
-    redirect_uri: str
-
-# Environment variables
-GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID", "")
-GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET", "")
-FRONTEND_URL = os.getenv("FRONTEND_URL", "https://idot-platform.onrender.com")
 
 
 def get_current_user(request: Request) -> Optional[dict]:
@@ -182,107 +170,3 @@ async def get_me(request: Request):
             "limits": limits
         }
     }
-
-
-# ============================================================================
-# GOOGLE OAUTH
-# ============================================================================
-
-@router.get("/google/login")
-async def google_login(request: Request):
-    """Redirect to Google OAuth"""
-    if not GOOGLE_CLIENT_ID:
-        raise HTTPException(status_code=500, detail="Google OAuth not configured")
-    
-    # Get the redirect URI from the request or use default
-    redirect_uri = f"{FRONTEND_URL}/api/auth/google/callback"
-    
-    google_auth_url = (
-        "https://accounts.google.com/o/oauth2/v2/auth?"
-        f"client_id={GOOGLE_CLIENT_ID}&"
-        f"redirect_uri={redirect_uri}&"
-        "response_type=code&"
-        "scope=email profile&"
-        "access_type=offline"
-    )
-    
-    return RedirectResponse(url=google_auth_url)
-
-
-@router.get("/google/callback")
-async def google_callback(request: Request, response: Response, code: str = None, error: str = None):
-    """Handle Google OAuth callback"""
-    if error:
-        return RedirectResponse(url=f"{FRONTEND_URL}?error=google_auth_failed")
-    
-    if not code:
-        return RedirectResponse(url=f"{FRONTEND_URL}?error=no_code")
-    
-    redirect_uri = f"{FRONTEND_URL}/api/auth/google/callback"
-    
-    # Exchange code for tokens
-    async with httpx.AsyncClient() as client:
-        token_response = await client.post(
-            "https://oauth2.googleapis.com/token",
-            data={
-                "client_id": GOOGLE_CLIENT_ID,
-                "client_secret": GOOGLE_CLIENT_SECRET,
-                "code": code,
-                "grant_type": "authorization_code",
-                "redirect_uri": redirect_uri
-            }
-        )
-    
-    if token_response.status_code != 200:
-        return RedirectResponse(url=f"{FRONTEND_URL}?error=token_exchange_failed")
-    
-    tokens = token_response.json()
-    access_token = tokens.get("access_token")
-    
-    # Get user info from Google
-    async with httpx.AsyncClient() as client:
-        userinfo_response = await client.get(
-            "https://www.googleapis.com/oauth2/v2/userinfo",
-            headers={"Authorization": f"Bearer {access_token}"}
-        )
-    
-    if userinfo_response.status_code != 200:
-        return RedirectResponse(url=f"{FRONTEND_URL}?error=userinfo_failed")
-    
-    google_user = userinfo_response.json()
-    google_id = google_user.get("id")
-    email = google_user.get("email")
-    name = google_user.get("name")
-    
-    # Find or create user
-    user = get_user_by_google_id(google_id)
-    
-    if not user:
-        # Check if email exists (user registered with email, now using Google)
-        user = get_user_by_email(email)
-        if user:
-            # Link Google account to existing user
-            update_user(user['id'], google_id=google_id)
-            user = get_user_by_email(email)
-        else:
-            # Create new user
-            user = create_user(email=email, name=name, google_id=google_id)
-    
-    if not user:
-        return RedirectResponse(url=f"{FRONTEND_URL}?error=user_creation_failed")
-    
-    # Create session
-    token = create_session(user['id'])
-    
-    # Redirect back to frontend with cookie set
-    redirect_response = RedirectResponse(url=f"{FRONTEND_URL}?login=success")
-    redirect_response.set_cookie(
-        key="session_token",
-        value=token,
-        httponly=True,
-        secure=True,
-        samesite="lax",
-        max_age=7 * 24 * 60 * 60  # 7 days
-    )
-    
-    return redirect_response
