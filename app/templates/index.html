@@ -627,6 +627,7 @@
                 <button class="tab-button" data-tab="contractor">Contractor Search</button>
                 <button class="tab-button" data-tab="contract">Contract Lookup</button>
                 <button class="tab-button" data-tab="browse">Browse Items</button>
+                <button class="tab-button" data-tab="estimator">📊 Estimator Tool</button>
             </div>
 
             <!-- Pay Item Search -->
@@ -723,6 +724,74 @@
                     <input type="text" id="browseInput" placeholder="Search by item code or description" />
                     <button onclick="browseItems()">Search</button>
                 </div>
+            </div>
+
+            <!-- Estimator Tool -->
+            <div id="estimator-tab" class="tab-content hidden">
+                <div class="summary-card" style="margin-bottom: 1.5rem;">
+                    <h4>📊 Estimator Pricing Tool</h4>
+                    <p style="margin: 0.5rem 0; color: #666;">
+                        Upload an Excel file with pay items and quantities to get weighted average unit prices based on historical bid data.
+                    </p>
+                    <ul style="margin: 0.5rem 0 0 1.5rem; color: #666; font-size: 0.9rem;">
+                        <li>Maximum 300 items per upload</li>
+                        <li>Prices are weighted averages based on quantity</li>
+                        <li>Filter by district and year range for more accurate estimates</li>
+                    </ul>
+                </div>
+
+                <div style="margin-bottom: 1rem;">
+                    <a href="/api/estimator/template" class="header-btn" style="background: #1e3a5f; color: white; text-decoration: none; display: inline-block;">
+                        ⬇️ Download Template
+                    </a>
+                </div>
+
+                <form id="estimatorForm" enctype="multipart/form-data">
+                    <div class="search-box" style="flex-direction: column; align-items: stretch;">
+                        <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center;">
+                            <label style="font-weight: 600;">Excel File:</label>
+                            <input type="file" id="estimatorFile" name="file" accept=".xlsx,.xls" required style="flex: 1;" />
+                        </div>
+                    </div>
+                    
+                    <div class="filters" style="margin-top: 1rem;">
+                        <label>Districts (select one or more):</label>
+                        <select id="estimatorDistricts" multiple style="min-width: 200px; height: 80px;">
+                        </select>
+                        <label>Year From:</label>
+                        <select id="estimatorYearStart">
+                            <option value="">All</option>
+                            <option value="2025">2025</option>
+                            <option value="2024">2024</option>
+                            <option value="2023">2023</option>
+                            <option value="2022">2022</option>
+                            <option value="2021">2021</option>
+                            <option value="2020">2020</option>
+                            <option value="2019">2019</option>
+                            <option value="2018">2018</option>
+                        </select>
+                        <label>To:</label>
+                        <select id="estimatorYearEnd">
+                            <option value="">All</option>
+                            <option value="2025">2025</option>
+                            <option value="2024">2024</option>
+                            <option value="2023">2023</option>
+                            <option value="2022">2022</option>
+                            <option value="2021">2021</option>
+                            <option value="2020">2020</option>
+                            <option value="2019">2019</option>
+                            <option value="2018">2018</option>
+                        </select>
+                    </div>
+                    
+                    <div style="margin-top: 1rem;">
+                        <button type="submit" style="padding: 0.7rem 2rem; background: #28a745; color: white; border: none; border-radius: 4px; font-size: 1rem; cursor: pointer;">
+                            🚀 Generate Prices
+                        </button>
+                    </div>
+                </form>
+                
+                <div id="estimatorStatus" style="margin-top: 1rem;"></div>
             </div>
 
             <div id="results" class="results"></div>
@@ -843,10 +912,100 @@
                 
                 document.getElementById('payItemDistrict').innerHTML = districtOptions;
                 document.getElementById('contractorDistrict').innerHTML = districtOptions;
+                
+                // Estimator multi-select (no "All" option)
+                const estimatorOptions = data.districts.map(d => 
+                    `<option value="${d.district}">${d.district} (${d.contract_count} contracts)</option>`
+                ).join('');
+                document.getElementById('estimatorDistricts').innerHTML = estimatorOptions;
             } catch (error) {
                 console.error('Error loading districts:', error);
             }
         }
+
+        // Estimator form submission
+        document.getElementById('estimatorForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const statusDiv = document.getElementById('estimatorStatus');
+            const fileInput = document.getElementById('estimatorFile');
+            
+            if (!fileInput.files || !fileInput.files[0]) {
+                statusDiv.innerHTML = '<div class="error">Please select an Excel file to upload.</div>';
+                return;
+            }
+            
+            const file = fileInput.files[0];
+            
+            // Get selected districts
+            const districtSelect = document.getElementById('estimatorDistricts');
+            const selectedDistricts = Array.from(districtSelect.selectedOptions).map(opt => opt.value);
+            
+            const yearStart = document.getElementById('estimatorYearStart').value;
+            const yearEnd = document.getElementById('estimatorYearEnd').value;
+            
+            // Build form data
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('districts', selectedDistricts.join(','));
+            if (yearStart) formData.append('year_start', yearStart);
+            if (yearEnd) formData.append('year_end', yearEnd);
+            
+            statusDiv.innerHTML = '<div class="loading">Processing your file</div>';
+            
+            try {
+                const response = await fetch('/api/estimator/price-items', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.detail || 'Failed to process file');
+                }
+                
+                // Get summary from headers
+                const itemsPriced = response.headers.get('X-Items-Priced') || '?';
+                const itemsNotFound = response.headers.get('X-Items-Not-Found') || '?';
+                const totalValue = response.headers.get('X-Total-Value') || '0';
+                
+                // Download the file
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `priced_${file.name}`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+                
+                statusDiv.innerHTML = `
+                    <div class="summary-card" style="border-left-color: #28a745;">
+                        <h4 style="color: #28a745;">✅ Pricing Complete!</h4>
+                        <div class="summary-stats" style="margin-top: 0.75rem;">
+                            <div class="summary-stat">
+                                <div class="value">${itemsPriced}</div>
+                                <div class="label">Items Priced</div>
+                            </div>
+                            <div class="summary-stat">
+                                <div class="value">${itemsNotFound}</div>
+                                <div class="label">Items Not Found</div>
+                            </div>
+                            <div class="summary-stat">
+                                <div class="value">${formatCurrency(parseFloat(totalValue))}</div>
+                                <div class="label">Total Estimated Value</div>
+                            </div>
+                        </div>
+                        <p style="margin-top: 1rem; color: #666; font-size: 0.9rem;">
+                            Your priced estimate has been downloaded. Check the "NOT FOUND" entries for items that couldn't be priced.
+                        </p>
+                    </div>
+                `;
+            } catch (error) {
+                statusDiv.innerHTML = `<div class="error">Error: ${error.message}</div>`;
+            }
+        });
 
         // Format currency
         function formatCurrency(value) {
