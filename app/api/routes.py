@@ -954,11 +954,29 @@ async def price_items_from_excel(
     from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
     from openpyxl.utils import get_column_letter
     
-    # Read the uploaded file
+    # Read the uploaded file - support both .xls and .xlsx
     try:
         contents = await file.read()
-        wb = openpyxl.load_workbook(io.BytesIO(contents))
-        ws = wb.active
+        filename_lower = (file.filename or '').lower()
+        
+        if filename_lower.endswith('.xls') and not filename_lower.endswith('.xlsx'):
+            # Old Excel format - use xlrd to read, then convert to openpyxl
+            import xlrd
+            xls_book = xlrd.open_workbook(file_contents=contents)
+            xls_sheet = xls_book.sheet_by_index(0)
+            
+            # Create new openpyxl workbook with the data
+            wb = openpyxl.Workbook()
+            ws = wb.active
+            
+            for row_idx in range(xls_sheet.nrows):
+                for col_idx in range(xls_sheet.ncols):
+                    cell_value = xls_sheet.cell_value(row_idx, col_idx)
+                    ws.cell(row=row_idx + 1, column=col_idx + 1, value=cell_value)
+        else:
+            # New Excel format (.xlsx)
+            wb = openpyxl.load_workbook(io.BytesIO(contents))
+            ws = wb.active
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Could not read Excel file: {str(e)}")
     
@@ -1152,7 +1170,13 @@ async def price_items_from_excel(
     output.seek(0)
     
     # Return as downloadable file
-    filename = f"priced_estimate_{file.filename}" if file.filename else "priced_estimate.xlsx"
+    # Ensure output is always .xlsx (even if input was .xls)
+    base_filename = file.filename or "estimate"
+    if base_filename.lower().endswith('.xls') and not base_filename.lower().endswith('.xlsx'):
+        base_filename = base_filename[:-4] + '.xlsx'
+    elif not base_filename.lower().endswith('.xlsx'):
+        base_filename = base_filename + '.xlsx'
+    filename = f"priced_{base_filename}"
     
     return StreamingResponse(
         output,
