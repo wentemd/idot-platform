@@ -7,6 +7,7 @@ from fastapi.responses import StreamingResponse
 from typing import Optional, List
 from slowapi import Limiter
 from slowapi.util import get_remote_address
+from datetime import datetime, timedelta
 import sqlite3
 import os
 import io
@@ -1783,3 +1784,380 @@ async def analyze_contractor_unbalancing(request: Request, contractor_name: str)
         "commonly_unbalanced_items": commonly_unbalanced[:20],
         "contract_history": contract_list[:50]
     }
+
+
+# ============================================================================
+# HERO METRICS - Dynamic Dashboard Tiles
+# ============================================================================
+
+@router.get("/hero/price-trend")
+@limiter.limit("60/minute")
+async def get_price_trend(request: Request):
+    """
+    Calculate overall weighted average unit price trend YoY
+    Returns: percentage change and direction
+    """
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    try:
+        # Get current year and previous year
+        current_year = datetime.now().year
+        prev_year = current_year - 1
+        
+        # Calculate weighted average for current year (winning bids only)
+        cursor.execute("""
+            SELECT 
+                SUM(unit_price * quantity) / NULLIF(SUM(quantity), 0) as weighted_avg
+            FROM bids
+            WHERE CAST(substr(letting_date, length(letting_date)-3) AS INTEGER) = ?
+            AND is_winner = 'Y'
+            AND unit_price > 0
+            AND quantity > 0
+        """, (current_year,))
+        row = cursor.fetchone()
+        current_avg = row['weighted_avg'] if row else None
+        
+        # Calculate weighted average for previous year
+        cursor.execute("""
+            SELECT 
+                SUM(unit_price * quantity) / NULLIF(SUM(quantity), 0) as weighted_avg
+            FROM bids
+            WHERE CAST(substr(letting_date, length(letting_date)-3) AS INTEGER) = ?
+            AND is_winner = 'Y'
+            AND unit_price > 0
+            AND quantity > 0
+        """, (prev_year,))
+        row = cursor.fetchone()
+        prev_avg = row['weighted_avg'] if row else None
+        
+        # Calculate percentage change
+        if prev_avg and current_avg and prev_avg > 0:
+            pct_change = ((current_avg - prev_avg) / prev_avg) * 100
+            direction = "up" if pct_change > 0 else "down"
+        else:
+            pct_change = 0
+            direction = "neutral"
+        
+        conn.close()
+        
+        return {
+            "metric": "price_trend",
+            "title": "Avg Price Trend",
+            "value": round(abs(pct_change), 1),
+            "unit": "%",
+            "direction": direction,
+            "label": f"YoY ({prev_year} → {current_year})",
+            "current_avg": round(current_avg, 2) if current_avg else None,
+            "prev_avg": round(prev_avg, 2) if prev_avg else None
+        }
+        
+    except Exception as e:
+        conn.close()
+        return {
+            "metric": "price_trend",
+            "title": "Avg Price Trend",
+            "value": 0,
+            "unit": "%",
+            "direction": "neutral",
+            "label": "Unable to calculate",
+            "error": str(e)
+        }
+
+
+@router.get("/hero/recent-lettings")
+@limiter.limit("60/minute")
+async def get_recent_lettings(request: Request):
+    """
+    Count of unique lettings in recent time periods
+    Returns: counts for 30, 60, 90 days
+    """
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    try:
+        # Get distinct letting dates and find recent ones
+        cursor.execute("""
+            SELECT DISTINCT letting_date 
+            FROM bids 
+            WHERE letting_date IS NOT NULL
+            ORDER BY letting_date DESC
+        """)
+        
+        all_dates = [row['letting_date'] for row in cursor.fetchall()]
+        
+        # Parse dates and count by period
+        today = datetime.now().date()
+        counts = {"30_days": 0, "60_days": 0, "90_days": 0}
+        latest_letting = None
+        
+        for date_str in all_dates:
+            try:
+                # Handle various date formats
+                if '/' in date_str:
+                    parts = date_str.split('/')
+                    if len(parts) == 3:
+                        month, day, year = int(parts[0]), int(parts[1]), int(parts[2])
+                        if year < 100:
+                            year += 2000
+                        letting_date = datetime(year, month, day).date()
+                else:
+                    continue
+                
+                if latest_letting is None:
+                    latest_letting = date_str
+                
+                days_ago = (today - letting_date).days
+                
+                if days_ago <= 30:
+                    counts["30_days"] += 1
+                if days_ago <= 60:
+                    counts["60_days"] += 1
+                if days_ago <= 90:
+                    counts["90_days"] += 1
+                    
+            except (ValueError, IndexError):
+                continue
+        
+        conn.close()
+        
+        return {
+            "metric": "recent_lettings",
+            "title": "Recent Lettings",
+            "value": counts["30_days"],
+            "unit": "",
+            "label": "Last 30 Days",
+            "details": {
+                "30_days": counts["30_days"],
+                "60_days": counts["60_days"],
+                "90_days": counts["90_days"],
+                "latest_letting": latest_letting
+            }
+        }
+        
+    except Exception as e:
+        conn.close()
+        return {
+            "metric": "recent_lettings",
+            "title": "Recent Lettings",
+            "value": 0,
+            "unit": "",
+            "label": "Unable to calculate",
+            "error": str(e)
+        }
+
+
+@router.get("/hero/price-volatility")
+@limiter.limit("60/minute")
+async def get_price_volatility(request: Request):
+    """
+    Find the item category with highest price volatility
+    Uses coefficient of variation (std dev / mean) for fair comparison
+    """
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    try:
+        # Get items with significant bid history (at least 20 bids)
+        # Calculate coefficient of variation for each
+        cursor.execute("""
+            WITH item_stats AS (
+                SELECT 
+                    item_number,
+                    item_description,
+                    COUNT(*) as bid_count,
+                    AVG(unit_price) as avg_price,
+                    AVG(unit_price * unit_price) - AVG(unit_price) * AVG(unit_price) as variance
+                FROM bids
+                WHERE unit_price > 0 
+                AND is_winner = 'Y'
+                AND quantity > 0
+                GROUP BY item_number
+                HAVING COUNT(*) >= 20
+            )
+            SELECT 
+                item_number,
+                item_description,
+                bid_count,
+                avg_price,
+                variance,
+                CASE 
+                    WHEN avg_price > 0 AND variance > 0 
+                    THEN (SQRT(variance) / avg_price) * 100 
+                    ELSE 0 
+                END as coef_variation
+            FROM item_stats
+            WHERE variance > 0
+            ORDER BY coef_variation DESC
+            LIMIT 1
+        """)
+        
+        result = cursor.fetchone()
+        conn.close()
+        
+        if result:
+            cv = result['coef_variation']
+            # Classify volatility level
+            if cv > 50:
+                level = "High"
+                color = "red"
+            elif cv > 25:
+                level = "Medium"
+                color = "orange"
+            else:
+                level = "Low"
+                color = "green"
+            
+            desc = result['item_description'] or ''
+            short_desc = desc[:30] + "..." if len(desc) > 30 else desc
+            
+            return {
+                "metric": "price_volatility",
+                "title": "Price Volatility",
+                "value": level,
+                "unit": "",
+                "label": short_desc,
+                "color": color,
+                "details": {
+                    "item_number": result['item_number'],
+                    "item_description": result['item_description'],
+                    "avg_price": round(result['avg_price'], 2),
+                    "coef_variation": round(cv, 1),
+                    "bid_count": result['bid_count']
+                }
+            }
+        else:
+            return {
+                "metric": "price_volatility",
+                "title": "Price Volatility",
+                "value": "N/A",
+                "unit": "",
+                "label": "Insufficient data"
+            }
+        
+    except Exception as e:
+        conn.close()
+        return {
+            "metric": "price_volatility",
+            "title": "Price Volatility",
+            "value": "N/A",
+            "unit": "",
+            "label": "Unable to calculate",
+            "error": str(e)
+        }
+
+
+@router.get("/hero/market-activity")
+@limiter.limit("60/minute")
+async def get_market_activity(request: Request):
+    """
+    Calculate market activity indicator based on recent bidding volume
+    Compares recent 90 days to same period last year
+    """
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    try:
+        current_year = datetime.now().year
+        prev_year = current_year - 1
+        
+        # Count bids and contracts in current year
+        cursor.execute("""
+            SELECT 
+                COUNT(*) as bid_count, 
+                COUNT(DISTINCT contract_number) as contract_count
+            FROM bids
+            WHERE CAST(substr(letting_date, length(letting_date)-3) AS INTEGER) = ?
+        """, (current_year,))
+        current = cursor.fetchone()
+        
+        # Count bids and contracts in previous year
+        cursor.execute("""
+            SELECT 
+                COUNT(*) as bid_count, 
+                COUNT(DISTINCT contract_number) as contract_count
+            FROM bids
+            WHERE CAST(substr(letting_date, length(letting_date)-3) AS INTEGER) = ?
+        """, (prev_year,))
+        last_year = cursor.fetchone()
+        
+        conn.close()
+        
+        current_bids = current['bid_count'] or 0
+        current_contracts = current['contract_count'] or 0
+        last_year_bids = last_year['bid_count'] or 0
+        last_year_contracts = last_year['contract_count'] or 0
+        
+        # Calculate activity change based on contracts
+        if last_year_contracts > 0:
+            pct_change = ((current_contracts - last_year_contracts) / last_year_contracts) * 100
+        else:
+            pct_change = 0
+        
+        # Classify activity level
+        if pct_change > 10:
+            level = "Hot"
+            emoji = "🔥"
+        elif pct_change > -10:
+            level = "Normal"
+            emoji = "📊"
+        else:
+            level = "Slow"
+            emoji = "📉"
+        
+        return {
+            "metric": "market_activity",
+            "title": "Market Activity",
+            "value": level,
+            "unit": "",
+            "emoji": emoji,
+            "label": f"{current_contracts} contracts ({current_year})",
+            "details": {
+                "current_bids": current_bids,
+                "current_contracts": current_contracts,
+                "last_year_bids": last_year_bids,
+                "last_year_contracts": last_year_contracts,
+                "pct_change": round(pct_change, 1)
+            }
+        }
+        
+    except Exception as e:
+        conn.close()
+        return {
+            "metric": "market_activity",
+            "title": "Market Activity",
+            "value": "N/A",
+            "unit": "",
+            "emoji": "📊",
+            "label": "Unable to calculate",
+            "error": str(e)
+        }
+
+
+@router.get("/hero/all")
+@limiter.limit("60/minute")
+async def get_all_hero_metrics(request: Request):
+    """
+    Get all hero metrics in a single call for dashboard efficiency
+    """
+    try:
+        price_trend = await get_price_trend(request)
+        recent_lettings = await get_recent_lettings(request)
+        price_volatility = await get_price_volatility(request)
+        market_activity = await get_market_activity(request)
+        
+        return {
+            "success": True,
+            "metrics": [
+                price_trend,
+                recent_lettings,
+                price_volatility,
+                market_activity
+            ],
+            "generated_at": datetime.now().isoformat()
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e)
+        }
