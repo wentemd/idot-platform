@@ -572,6 +572,364 @@ async def search_contractor(
         "contracts": contracts
     }
 
+
+# ============================================================================
+# CONTRACTOR COMPARISON
+# ============================================================================
+
+@router.get("/compare/contractors")
+@limiter.limit("30/minute")
+async def compare_contractors(
+    request: Request,
+    contractors: str = Query(..., description="Comma-separated contractor names"),
+    year_start: Optional[int] = None,
+    year_end: Optional[int] = None,
+    district: Optional[str] = None
+):
+    """
+    Compare multiple contractors side-by-side.
+    Returns metrics for visualization: win rates, pricing aggressiveness, market share.
+    """
+    contractor_list = [c.strip() for c in contractors.split(',') if c.strip()]
+    
+    if len(contractor_list) < 2:
+        raise HTTPException(status_code=400, detail="Please provide at least 2 contractors to compare")
+    
+    if len(contractor_list) > 6:
+        raise HTTPException(status_code=400, detail="Maximum 6 contractors can be compared at once")
+    
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    results = []
+    
+    for contractor_name in contractor_list:
+        # Build filter conditions
+        year_filter = ""
+        params = [f"%{contractor_name}%"]
+        
+        if year_start:
+            year_filter += " AND CAST(substr(letting_date, length(letting_date)-3) AS INTEGER) >= ?"
+            params.append(year_start)
+        if year_end:
+            year_filter += " AND CAST(substr(letting_date, length(letting_date)-3) AS INTEGER) <= ?"
+            params.append(year_end)
+        if district:
+            year_filter += " AND district LIKE ?"
+            params.append(f"%{district}%")
+        
+        # Get basic stats
+        cursor.execute(f"""
+            SELECT 
+                MAX(bidder_name) as bidder_name,
+                COUNT(DISTINCT contract_number) as contracts_bid,
+                COUNT(DISTINCT CASE WHEN is_winner = 'Y' THEN contract_number END) as contracts_won,
+                ROUND(100.0 * COUNT(DISTINCT CASE WHEN is_winner = 'Y' THEN contract_number END) / 
+                    NULLIF(COUNT(DISTINCT contract_number), 0), 1) as win_rate,
+                ROUND(AVG(bidder_rank), 2) as avg_rank,
+                ROUND(AVG(CASE WHEN bidder_rank <= 3 THEN 1.0 ELSE 0.0 END) * 100, 1) as top3_rate
+            FROM bids
+            WHERE bidder_name LIKE ?
+            {year_filter}
+        """, params)
+        
+        stats_row = cursor.fetchone()
+        
+        if not stats_row or not stats_row['contracts_bid']:
+            continue
+        
+        # Get total bid and won values
+        cursor.execute(f"""
+            SELECT 
+                SUM(DISTINCT total_bid_amount) as total_bid_value
+            FROM bids
+            WHERE bidder_name LIKE ?
+            AND is_winner = 'Y'
+            {year_filter}
+        """, params)
+        value_row = cursor.fetchone()
+        total_won_value = value_row['total_bid_value'] if value_row and value_row['total_bid_value'] else 0
+        
+        # Get pricing aggressiveness (avg % vs low bid on contracts they didn't win)
+        cursor.execute(f"""
+            SELECT 
+                AVG(bid_spread_pct) as avg_spread_vs_low
+            FROM bids
+            WHERE bidder_name LIKE ?
+            AND bid_spread_pct IS NOT NULL
+            AND bid_spread_pct > 0
+            {year_filter}
+            GROUP BY contract_number
+        """, params)
+        spread_rows = cursor.fetchall()
+        avg_spread = sum(r['avg_spread_vs_low'] for r in spread_rows if r['avg_spread_vs_low']) / len(spread_rows) if spread_rows else 0
+        
+        # Get yearly trend
+        cursor.execute(f"""
+            SELECT 
+                CAST(substr(letting_date, length(letting_date)-3) AS INTEGER) as year,
+                COUNT(DISTINCT contract_number) as contracts,
+                COUNT(DISTINCT CASE WHEN is_winner = 'Y' THEN contract_number END) as wins
+            FROM bids
+            WHERE bidder_name LIKE ?
+            {year_filter}
+            GROUP BY year
+            ORDER BY year
+        """, params)
+        yearly_data = [dict(row) for row in cursor.fetchall()]
+        
+        # Get top counties
+        cursor.execute(f"""
+            SELECT 
+                county,
+                COUNT(DISTINCT contract_number) as contracts,
+                COUNT(DISTINCT CASE WHEN is_winner = 'Y' THEN contract_number END) as wins
+            FROM bids
+            WHERE bidder_name LIKE ?
+            AND county IS NOT NULL AND county != ''
+            {year_filter}
+            GROUP BY county
+            ORDER BY contracts DESC
+            LIMIT 5
+        """, params)
+        top_counties = [dict(row) for row in cursor.fetchall()]
+        
+        results.append({
+            "name": stats_row['bidder_name'] or contractor_name,
+            "search_term": contractor_name,
+            "contracts_bid": stats_row['contracts_bid'] or 0,
+            "contracts_won": stats_row['contracts_won'] or 0,
+            "win_rate": stats_row['win_rate'] or 0,
+            "avg_rank": stats_row['avg_rank'] or 0,
+            "top3_rate": stats_row['top3_rate'] or 0,
+            "total_won_value": total_won_value,
+            "avg_spread_vs_low": round(avg_spread, 2),
+            "yearly_trend": yearly_data,
+            "top_counties": top_counties
+        })
+    
+    conn.close()
+    
+    # Sort by win rate descending
+    results.sort(key=lambda x: x['win_rate'], reverse=True)
+    
+    return {
+        "comparison": results,
+        "filters": {
+            "year_start": year_start,
+            "year_end": year_end,
+            "district": district
+        },
+        "contractor_count": len(results)
+    }
+
+
+@router.get("/compare/top-contractors")
+@limiter.limit("30/minute")
+async def get_top_contractors(
+    request: Request,
+    metric: str = Query(default="wins", description="Metric to rank by: wins, win_rate, contracts, value"),
+    year_start: Optional[int] = None,
+    year_end: Optional[int] = None,
+    district: Optional[str] = None,
+    county: Optional[str] = None,
+    limit: int = Query(default=10, le=20)
+):
+    """
+    Get top contractors by various metrics for leaderboard display.
+    """
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    # Build filter conditions
+    where_clauses = ["bidder_name IS NOT NULL", "bidder_name != ''"]
+    params = []
+    
+    if year_start:
+        where_clauses.append("CAST(substr(letting_date, length(letting_date)-3) AS INTEGER) >= ?")
+        params.append(year_start)
+    if year_end:
+        where_clauses.append("CAST(substr(letting_date, length(letting_date)-3) AS INTEGER) <= ?")
+        params.append(year_end)
+    if district:
+        where_clauses.append("district LIKE ?")
+        params.append(f"%{district}%")
+    if county:
+        where_clauses.append("county LIKE ?")
+        params.append(f"%{county}%")
+    
+    where_sql = " AND ".join(where_clauses)
+    
+    # Determine order by clause
+    order_by = {
+        "wins": "contracts_won DESC",
+        "win_rate": "win_rate DESC",
+        "contracts": "contracts_bid DESC",
+        "value": "total_won_value DESC",
+        "avg_rank": "avg_rank ASC"
+    }.get(metric, "contracts_won DESC")
+    
+    cursor.execute(f"""
+        WITH contractor_stats AS (
+            SELECT 
+                bidder_name,
+                COUNT(DISTINCT contract_number) as contracts_bid,
+                COUNT(DISTINCT CASE WHEN is_winner = 'Y' THEN contract_number END) as contracts_won,
+                ROUND(100.0 * COUNT(DISTINCT CASE WHEN is_winner = 'Y' THEN contract_number END) / 
+                    NULLIF(COUNT(DISTINCT contract_number), 0), 1) as win_rate,
+                ROUND(AVG(bidder_rank), 2) as avg_rank
+            FROM bids
+            WHERE {where_sql}
+            GROUP BY bidder_name
+            HAVING contracts_bid >= 3
+        ),
+        contractor_values AS (
+            SELECT 
+                bidder_name,
+                SUM(total_bid_amount) as total_won_value
+            FROM (
+                SELECT DISTINCT bidder_name, contract_number, total_bid_amount
+                FROM bids
+                WHERE {where_sql} AND is_winner = 'Y'
+            )
+            GROUP BY bidder_name
+        )
+        SELECT 
+            cs.*,
+            COALESCE(cv.total_won_value, 0) as total_won_value
+        FROM contractor_stats cs
+        LEFT JOIN contractor_values cv ON cs.bidder_name = cv.bidder_name
+        ORDER BY {order_by}
+        LIMIT ?
+    """, params + params + [limit])
+    
+    contractors = [dict(row) for row in cursor.fetchall()]
+    conn.close()
+    
+    return {
+        "metric": metric,
+        "filters": {
+            "year_start": year_start,
+            "year_end": year_end,
+            "district": district,
+            "county": county
+        },
+        "contractors": contractors
+    }
+
+
+@router.get("/compare/head-to-head")
+@limiter.limit("30/minute")
+async def head_to_head(
+    request: Request,
+    contractor1: str,
+    contractor2: str,
+    year_start: Optional[int] = None,
+    year_end: Optional[int] = None
+):
+    """
+    Direct head-to-head comparison when two contractors bid on the same contracts.
+    """
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    # Build filter conditions
+    year_filter = ""
+    params = [f"%{contractor1}%", f"%{contractor2}%"]
+    
+    if year_start:
+        year_filter += " AND CAST(substr(letting_date, length(letting_date)-3) AS INTEGER) >= ?"
+        params.append(year_start)
+    if year_end:
+        year_filter += " AND CAST(substr(letting_date, length(letting_date)-3) AS INTEGER) <= ?"
+        params.append(year_end)
+    
+    # Find contracts where both contractors bid
+    cursor.execute(f"""
+        SELECT DISTINCT b1.contract_number
+        FROM bids b1
+        JOIN bids b2 ON b1.contract_number = b2.contract_number
+        WHERE b1.bidder_name LIKE ?
+        AND b2.bidder_name LIKE ?
+        {year_filter}
+    """, params)
+    
+    shared_contracts = [row['contract_number'] for row in cursor.fetchall()]
+    
+    if not shared_contracts:
+        conn.close()
+        return {
+            "contractor1": contractor1,
+            "contractor2": contractor2,
+            "shared_contracts": 0,
+            "message": "No contracts found where both contractors bid"
+        }
+    
+    # Get detailed comparison for shared contracts
+    results = []
+    for contract in shared_contracts:
+        cursor.execute("""
+            SELECT 
+                contract_number,
+                letting_date,
+                county,
+                bidder_name,
+                bidder_rank,
+                total_bid_amount,
+                is_winner
+            FROM bids
+            WHERE contract_number = ?
+            AND (bidder_name LIKE ? OR bidder_name LIKE ?)
+            GROUP BY contract_number, bidder_name
+        """, [contract, f"%{contractor1}%", f"%{contractor2}%"])
+        
+        contract_bids = [dict(row) for row in cursor.fetchall()]
+        if len(contract_bids) == 2:
+            results.append({
+                "contract_number": contract,
+                "letting_date": contract_bids[0]['letting_date'],
+                "county": contract_bids[0]['county'],
+                "bids": contract_bids
+            })
+    
+    # Calculate head-to-head stats
+    c1_wins = 0
+    c2_wins = 0
+    c1_better_rank = 0
+    c2_better_rank = 0
+    
+    for r in results:
+        bids = r['bids']
+        c1_bid = next((b for b in bids if contractor1.lower() in b['bidder_name'].lower()), None)
+        c2_bid = next((b for b in bids if contractor2.lower() in b['bidder_name'].lower()), None)
+        
+        if c1_bid and c2_bid:
+            if c1_bid['is_winner'] == 'Y':
+                c1_wins += 1
+            elif c2_bid['is_winner'] == 'Y':
+                c2_wins += 1
+            
+            if c1_bid['bidder_rank'] < c2_bid['bidder_rank']:
+                c1_better_rank += 1
+            elif c2_bid['bidder_rank'] < c1_bid['bidder_rank']:
+                c2_better_rank += 1
+    
+    conn.close()
+    
+    return {
+        "contractor1": contractor1,
+        "contractor2": contractor2,
+        "shared_contracts": len(results),
+        "head_to_head": {
+            "contractor1_wins": c1_wins,
+            "contractor2_wins": c2_wins,
+            "contractor1_ranked_higher": c1_better_rank,
+            "contractor2_ranked_higher": c2_better_rank
+        },
+        "contracts": results[:20]  # Limit to 20 most recent
+    }
+
+
 # ============================================================================
 # CONTRACT SEARCH
 # ============================================================================
