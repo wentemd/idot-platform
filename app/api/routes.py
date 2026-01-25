@@ -519,6 +519,37 @@ async def search_contractor(
     
     left_on_table_pct = round((total_left_on_table / total_second_place_bids) * 100, 2) if total_second_place_bids > 0 else 0
     
+    # Calculate "won by" margin for contracts where contractor won
+    # (Difference between their winning bid and #2's bid)
+    won_by_query = f"""
+        SELECT 
+            b1.contract_number,
+            b1.total_bid_amount as winning_bid,
+            b2.total_bid_amount as second_place_bid,
+            (b2.total_bid_amount - b1.total_bid_amount) as won_by
+        FROM bids b1
+        JOIN bids b2 ON b1.contract_number = b2.contract_number 
+            AND b2.bidder_rank = 2
+            AND b1.item_number = b2.item_number
+        WHERE b1.bidder_name LIKE ?
+            AND b1.is_winner = 'Y'
+        GROUP BY b1.contract_number
+    """
+    
+    cursor.execute(won_by_query, [f"%{name}%"])
+    won_by_rows = cursor.fetchall()
+    
+    total_won_by = 0
+    total_winning_bids = 0
+    
+    for row in won_by_rows:
+        if row['won_by']:
+            total_won_by += row['won_by']
+        if row['winning_bid']:
+            total_winning_bids += row['winning_bid']
+    
+    won_by_pct = round((total_won_by / total_winning_bids) * 100, 2) if total_winning_bids > 0 else 0
+    
     stats = []
     for row in stats_rows:
         stat = dict(row)
@@ -526,6 +557,8 @@ async def search_contractor(
         stat['contracts_as_second'] = contracts_as_second
         stat['total_left_on_table'] = round(total_left_on_table, 2)
         stat['left_on_table_pct'] = left_on_table_pct
+        stat['total_won_by'] = round(total_won_by, 2)
+        stat['won_by_pct'] = won_by_pct
         stats.append(stat)
     
     conn.close()
