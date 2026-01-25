@@ -1605,9 +1605,8 @@
                 }
                 
                 const validBids = data.bids.filter(b => b.unit_price > 0 && b.quantity > 0);
-                const totalExtension = validBids.reduce((sum, b) => sum + (b.extension || 0), 0);
-                const totalQuantity = validBids.reduce((sum, b) => sum + (b.quantity || 0), 0);
-                const weightedAvgPrice = totalQuantity > 0 ? totalExtension / totalQuantity : 0;
+                // Use pre-calculated weighted average from API (winning bids only)
+                const weightedAvgPrice = data.overall_weighted_avg || 0;
                 const prices = validBids.map(b => b.unit_price);
                 const minPrice = prices.length > 0 ? Math.min(...prices) : 0;
                 const maxPrice = prices.length > 0 ? Math.max(...prices) : 0;
@@ -1768,6 +1767,11 @@
                                     <div class="label">Total Won Value</div>
                                 </div>
                             </div>
+                            <div style="margin-top: 1rem;">
+                                <button class="btn btn-primary" onclick="analyzeContractorUnbalancing('${stat.bidder_name}')" style="width: auto; padding: 0.5rem 1rem; background: #6c757d;">
+                                    📊 Analyze Unbalancing Pattern
+                                </button>
+                            </div>
                         </div>
                     `).join('');
                 }
@@ -1905,7 +1909,14 @@
                                 <div class="label">Winner</div>
                             </div>
                         </div>
+                        <div style="margin-top: 1rem;">
+                            <button class="btn btn-primary" onclick="analyzeContractUnbalancing('${contract}')" style="width: auto; padding: 0.5rem 1rem;">
+                                📊 Analyze Bid Unbalancing
+                            </button>
+                        </div>
                     </div>
+                    
+                    <div id="unbalanceResults"></div>
                     
                     <h4 style="margin: 1.5rem 0 1rem; color: #1e3a5f;">Bid Comparison by Item</h4>
                     <div class="table-container" style="max-height: 600px;">
@@ -2064,7 +2075,242 @@
         document.getElementById('contractInput').addEventListener('keypress', e => { if (e.key === 'Enter') searchContract(); });
         document.getElementById('browseInput').addEventListener('keypress', e => { if (e.key === 'Enter') browseItems(); });
 
-        // Initialize
+        // ============================================================================
+        // UNBALANCING ANALYSIS
+        // ============================================================================
+        
+        async function analyzeContractUnbalancing(contractNumber) {
+            const resultsDiv = document.getElementById('unbalanceResults');
+            resultsDiv.innerHTML = '<div class="loading">Analyzing bid unbalancing</div>';
+            
+            try {
+                const response = await fetch(`/api/analysis/unbalance/contract/${encodeURIComponent(contractNumber)}`);
+                
+                if (!response.ok) throw new Error('Analysis failed');
+                const data = await response.json();
+                
+                const biddersHtml = data.bidders.map(bidder => {
+                    const scoreColor = bidder.unbalance_score > 30 ? '#dc3545' : (bidder.unbalance_score > 15 ? '#ffc107' : '#28a745');
+                    const scoreLabel = bidder.unbalance_score > 30 ? 'High' : (bidder.unbalance_score > 15 ? 'Moderate' : 'Low');
+                    
+                    let itemsHtml = '';
+                    if (bidder.unbalanced_items.length > 0) {
+                        itemsHtml = `
+                            <div style="margin-top: 0.75rem;">
+                                <strong>Flagged Items (>${'>'} 50% variance):</strong>
+                                <table class="data-table" style="font-size: 0.8rem; margin-top: 0.5rem;">
+                                    <thead>
+                                        <tr>
+                                            <th>Item</th>
+                                            <th class="number">Their Price</th>
+                                            <th class="number">Avg Price</th>
+                                            <th class="number">Variance</th>
+                                            <th class="number">$ Impact</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${bidder.unbalanced_items.slice(0, 10).map(item => `
+                                            <tr>
+                                                <td>${item.item_number}<br><small>${item.description?.substring(0, 30) || ''}</small></td>
+                                                <td class="number">${formatCurrency(item.their_price)}</td>
+                                                <td class="number">${formatCurrency(item.avg_price)}</td>
+                                                <td class="number" style="color: ${item.is_high ? '#dc3545' : '#28a745'}">
+                                                    ${item.variance_pct > 0 ? '+' : ''}${item.variance_pct}%
+                                                </td>
+                                                <td class="number" style="color: ${item.variance_dollars > 0 ? '#dc3545' : '#28a745'}">
+                                                    ${item.variance_dollars > 0 ? '+' : ''}${formatCurrency(item.variance_dollars)}
+                                                </td>
+                                            </tr>
+                                        `).join('')}
+                                    </tbody>
+                                </table>
+                                ${bidder.unbalanced_items.length > 10 ? `<small style="color: #666;">...and ${bidder.unbalanced_items.length - 10} more items</small>` : ''}
+                            </div>
+                        `;
+                    }
+                    
+                    return `
+                        <div class="contractor-card" style="${bidder.is_winner === 'Y' ? 'border-left: 4px solid #28a745;' : ''}">
+                            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+                                <h4>
+                                    ${bidder.is_winner === 'Y' ? '🏆 ' : ''}${bidder.bidder_name} 
+                                    <span class="badge badge-rank">#${bidder.bidder_rank}</span>
+                                </h4>
+                                <div style="text-align: center; padding: 0.5rem 1rem; background: ${scoreColor}20; border-radius: 4px;">
+                                    <div style="font-size: 1.5rem; font-weight: bold; color: ${scoreColor};">${bidder.unbalance_score}</div>
+                                    <div style="font-size: 0.75rem; color: ${scoreColor};">${scoreLabel} Unbalance</div>
+                                </div>
+                            </div>
+                            <div class="contractor-stats" style="margin-top: 0.75rem;">
+                                <div class="contractor-stat">
+                                    <div class="value">${bidder.items_analyzed}</div>
+                                    <div class="label">Items Analyzed</div>
+                                </div>
+                                <div class="contractor-stat">
+                                    <div class="value" style="color: #dc3545;">${bidder.items_unbalanced_high}</div>
+                                    <div class="label">Priced High</div>
+                                </div>
+                                <div class="contractor-stat">
+                                    <div class="value" style="color: #28a745;">${bidder.items_unbalanced_low}</div>
+                                    <div class="label">Priced Low</div>
+                                </div>
+                                <div class="contractor-stat">
+                                    <div class="value">${formatCurrency(bidder.total_variance_dollars)}</div>
+                                    <div class="label">Net Variance</div>
+                                </div>
+                            </div>
+                            ${itemsHtml}
+                        </div>
+                    `;
+                }).join('');
+                
+                resultsDiv.innerHTML = `
+                    <div class="summary-card" style="margin-top: 1.5rem; border-left-color: #6c757d;">
+                        <h4>📊 Bid Unbalancing Analysis</h4>
+                        <p style="color: #666; margin: 0.5rem 0;">
+                            Compares each bidder's item prices to historical weighted averages from winning bids.
+                            Items with &gt;50% variance from average are flagged.
+                        </p>
+                        <div class="summary-stats" style="margin-top: 0.75rem;">
+                            <div class="summary-stat">
+                                <div class="value">${data.items_in_contract}</div>
+                                <div class="label">Items in Contract</div>
+                            </div>
+                            <div class="summary-stat">
+                                <div class="value">${data.items_with_history}</div>
+                                <div class="label">With Price History</div>
+                            </div>
+                        </div>
+                    </div>
+                    ${biddersHtml}
+                `;
+            } catch (error) {
+                resultsDiv.innerHTML = `<div class="error">Error: ${error.message}</div>`;
+            }
+        }
+        
+        async function analyzeContractorUnbalancing(contractorName) {
+            const resultsDiv = document.getElementById('results');
+            const existingContent = resultsDiv.innerHTML;
+            
+            // Add analysis section
+            const analysisDiv = document.createElement('div');
+            analysisDiv.id = 'contractorUnbalanceAnalysis';
+            analysisDiv.innerHTML = '<div class="loading">Analyzing unbalancing patterns</div>';
+            resultsDiv.appendChild(analysisDiv);
+            
+            try {
+                const response = await fetch(`/api/analysis/unbalance/contractor/${encodeURIComponent(contractorName)}`);
+                
+                if (!response.ok) throw new Error('Analysis failed');
+                const data = await response.json();
+                
+                const tendencyColor = data.unbalance_tendency === 'high' ? '#dc3545' : (data.unbalance_tendency === 'low' ? '#28a745' : '#ffc107');
+                const tendencyLabel = data.unbalance_tendency === 'high' ? 'Tends to price HIGH' : (data.unbalance_tendency === 'low' ? 'Tends to price LOW' : 'Mixed pattern');
+                
+                const scoreColor = data.average_unbalance_score > 30 ? '#dc3545' : (data.average_unbalance_score > 15 ? '#ffc107' : '#28a745');
+                
+                let commonItemsHtml = '';
+                if (data.commonly_unbalanced_items.length > 0) {
+                    commonItemsHtml = `
+                        <h4 style="margin: 1rem 0 0.5rem; color: #1e3a5f;">Commonly Unbalanced Items</h4>
+                        <table class="data-table" style="font-size: 0.85rem;">
+                            <thead>
+                                <tr>
+                                    <th>Item</th>
+                                    <th class="number">Times High</th>
+                                    <th class="number">Times Low</th>
+                                    <th class="number">Total Variance</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${data.commonly_unbalanced_items.map(item => `
+                                    <tr>
+                                        <td>${item.item_number}<br><small>${item.description?.substring(0, 40) || ''}</small></td>
+                                        <td class="number" style="color: #dc3545;">${item.times_high}</td>
+                                        <td class="number" style="color: #28a745;">${item.times_low}</td>
+                                        <td class="number">${formatCurrency(item.total_variance)}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    `;
+                }
+                
+                let historyHtml = '';
+                if (data.contract_history.length > 0) {
+                    historyHtml = `
+                        <h4 style="margin: 1rem 0 0.5rem; color: #1e3a5f;">Contract History</h4>
+                        <table class="data-table" style="font-size: 0.85rem;">
+                            <thead>
+                                <tr>
+                                    <th>Contract</th>
+                                    <th>Date</th>
+                                    <th>Result</th>
+                                    <th class="number">Items</th>
+                                    <th class="number">Unbalanced</th>
+                                    <th class="number">Score</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${data.contract_history.map(c => {
+                                    const cScoreColor = c.unbalance_score > 30 ? '#dc3545' : (c.unbalance_score > 15 ? '#ffc107' : '#28a745');
+                                    return `
+                                        <tr class="${c.is_winner === 'Y' ? 'winner' : ''}">
+                                            <td><a href="#" onclick="searchContractDirect('${c.contract_number}'); return false;">${c.contract_number}</a></td>
+                                            <td>${c.letting_date}</td>
+                                            <td>${c.is_winner === 'Y' ? '<span class="badge badge-winner">WON</span>' : ''}</td>
+                                            <td class="number">${c.items_analyzed}</td>
+                                            <td class="number">${c.items_unbalanced}</td>
+                                            <td class="number" style="color: ${cScoreColor}; font-weight: bold;">${c.unbalance_score}</td>
+                                        </tr>
+                                    `;
+                                }).join('')}
+                            </tbody>
+                        </table>
+                    `;
+                }
+                
+                analysisDiv.innerHTML = `
+                    <div class="summary-card" style="margin-top: 1.5rem; border-left-color: #6c757d;">
+                        <h4>📊 Unbalancing Pattern Analysis</h4>
+                        <p style="color: #666; margin: 0.5rem 0;">
+                            Analysis of ${data.contracts_analyzed} recent contracts to identify bidding patterns.
+                        </p>
+                        <div class="summary-stats" style="margin-top: 0.75rem;">
+                            <div class="summary-stat">
+                                <div class="value" style="color: ${scoreColor};">${data.average_unbalance_score}</div>
+                                <div class="label">Avg Unbalance Score</div>
+                            </div>
+                            <div class="summary-stat">
+                                <div class="value">${data.total_items_analyzed}</div>
+                                <div class="label">Items Analyzed</div>
+                            </div>
+                            <div class="summary-stat">
+                                <div class="value" style="color: #dc3545;">${data.total_items_high}</div>
+                                <div class="label">Priced High</div>
+                            </div>
+                            <div class="summary-stat">
+                                <div class="value" style="color: #28a745;">${data.total_items_low}</div>
+                                <div class="label">Priced Low</div>
+                            </div>
+                            <div class="summary-stat">
+                                <div class="value" style="color: ${tendencyColor};">${tendencyLabel}</div>
+                                <div class="label">Tendency</div>
+                            </div>
+                        </div>
+                    </div>
+                    ${commonItemsHtml}
+                    ${historyHtml}
+                `;
+            } catch (error) {
+                analysisDiv.innerHTML = `<div class="error">Error: ${error.message}</div>`;
+            }
+        }
+
+        // ============================================================================
+        // INITIALIZATION
+        // ============================================================================
         checkUrlParams();
         checkAuth();
         loadStats();
