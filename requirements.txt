@@ -12,3 +12,4 @@ slowapi
 openpyxl
 bcrypt
 stripe
+xlrd
