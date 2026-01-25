@@ -1253,3 +1253,277 @@ async def get_estimator_template(request: Request):
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         headers={"Content-Disposition": "attachment; filename=estimator_template.xlsx"}
     )
+
+
+# ============================================================================
+# BID UNBALANCING ANALYSIS
+# ============================================================================
+
+@router.get("/analysis/unbalance/contract/{contract_number}")
+@limiter.limit("20/minute")
+async def analyze_contract_unbalancing(request: Request, contract_number: str):
+    """
+    Analyze bid unbalancing for a specific contract.
+    Compares each bidder's item prices to the winning bid prices.
+    Flags items priced significantly above or below the winner.
+    """
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    # Get all bids for this contract
+    cursor.execute("""
+        SELECT 
+            item_number,
+            item_description,
+            bidder_name,
+            bidder_rank,
+            is_winner,
+            quantity,
+            unit,
+            unit_price,
+            extension
+        FROM bids
+        WHERE contract_number LIKE ?
+        AND unit_price > 0
+        AND quantity > 0
+        ORDER BY item_number, bidder_rank
+    """, [f"%{contract_number}%"])
+    
+    rows = cursor.fetchall()
+    conn.close()
+    
+    if not rows:
+        raise HTTPException(status_code=404, detail="Contract not found")
+    
+    # Organize data by item and find winning prices
+    items = {}
+    bidders = {}
+    
+    for row in rows:
+        item_num = row['item_number']
+        bidder = row['bidder_name']
+        
+        # Track bidders
+        if bidder not in bidders:
+            bidders[bidder] = {
+                'name': bidder,
+                'rank': row['bidder_rank'],
+                'is_winner': row['is_winner'] == 'Y',
+                'items': {},
+                'unbalanced_items': [],
+                'items_unbalanced_high': 0,
+                'items_unbalanced_low': 0,
+                'unbalance_score': 0
+            }
+        
+        # Track items
+        if item_num not in items:
+            items[item_num] = {
+                'item_number': item_num,
+                'description': row['item_description'],
+                'quantity': row['quantity'],
+                'unit': row['unit'],
+                'winning_price': None,
+                'prices': {}
+            }
+        
+        items[item_num]['prices'][bidder] = row['unit_price']
+        bidders[bidder]['items'][item_num] = row['unit_price']
+        
+        if row['is_winner'] == 'Y':
+            items[item_num]['winning_price'] = row['unit_price']
+    
+    # Analyze each bidder's pricing vs winner
+    for bidder_name, bidder_data in bidders.items():
+        if bidder_data['is_winner']:
+            continue  # Skip winner - they are the baseline
+        
+        total_deviation = 0
+        item_count = 0
+        
+        for item_num, bidder_price in bidder_data['items'].items():
+            winning_price = items[item_num]['winning_price']
+            
+            if winning_price and winning_price > 0:
+                deviation_pct = ((bidder_price - winning_price) / winning_price) * 100
+                item_count += 1
+                total_deviation += abs(deviation_pct)
+                
+                # Flag significantly unbalanced items (>25% deviation)
+                if abs(deviation_pct) > 25:
+                    direction = 'high' if deviation_pct > 0 else 'low'
+                    bidder_data['unbalanced_items'].append({
+                        'item_number': item_num,
+                        'description': items[item_num]['description'][:50] if items[item_num]['description'] else '',
+                        'quantity': items[item_num]['quantity'],
+                        'bidder_price': round(bidder_price, 2),
+                        'winning_price': round(winning_price, 2),
+                        'deviation_pct': round(deviation_pct, 1),
+                        'direction': direction
+                    })
+                    
+                    if deviation_pct > 0:
+                        bidder_data['items_unbalanced_high'] += 1
+                    else:
+                        bidder_data['items_unbalanced_low'] += 1
+        
+        # Calculate average unbalance score
+        if item_count > 0:
+            bidder_data['unbalance_score'] = round(total_deviation / item_count, 1)
+        
+        # Sort unbalanced items by absolute deviation
+        bidder_data['unbalanced_items'].sort(key=lambda x: abs(x['deviation_pct']), reverse=True)
+    
+    # Prepare response - exclude winner, sort by unbalance score
+    result = []
+    for bidder_name, bidder_data in bidders.items():
+        if not bidder_data['is_winner']:
+            result.append({
+                'bidder_name': bidder_data['name'],
+                'rank': bidder_data['rank'],
+                'unbalance_score': bidder_data['unbalance_score'],
+                'items_unbalanced_high': bidder_data['items_unbalanced_high'],
+                'items_unbalanced_low': bidder_data['items_unbalanced_low'],
+                'unbalanced_items': bidder_data['unbalanced_items']
+            })
+    
+    result.sort(key=lambda x: x['unbalance_score'], reverse=True)
+    
+    return {
+        "contract_number": contract_number,
+        "bidder_count": len(result),
+        "bidders": result
+    }
+
+
+@router.get("/analysis/unbalance/contractor/{contractor_name}")
+@limiter.limit("20/minute")
+async def analyze_contractor_unbalancing(request: Request, contractor_name: str):
+    """
+    Analyze a contractor's bid unbalancing patterns across multiple contracts.
+    Identifies commonly unbalanced items and overall pricing tendencies.
+    """
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    # Get contractor's bids with winning prices for comparison
+    cursor.execute("""
+        SELECT 
+            b1.contract_number,
+            b1.letting_date,
+            b1.item_number,
+            b1.item_description,
+            b1.unit_price as bidder_price,
+            b1.quantity,
+            b2.unit_price as winning_price
+        FROM bids b1
+        LEFT JOIN bids b2 ON b1.contract_number = b2.contract_number 
+            AND b1.item_number = b2.item_number 
+            AND b2.is_winner = 'Y'
+        WHERE b1.bidder_name LIKE ?
+        AND b1.unit_price > 0
+        AND b1.quantity > 0
+        AND b2.unit_price > 0
+        ORDER BY b1.letting_date DESC
+    """, [f"%{contractor_name}%"])
+    
+    rows = cursor.fetchall()
+    conn.close()
+    
+    if not rows:
+        raise HTTPException(status_code=404, detail="Contractor not found or no comparable data")
+    
+    # Analyze patterns
+    contracts = {}
+    item_deviations = {}  # Track deviations by item number
+    total_high = 0
+    total_low = 0
+    all_deviations = []
+    
+    for row in rows:
+        contract = row['contract_number']
+        item_num = row['item_number']
+        bidder_price = row['bidder_price']
+        winning_price = row['winning_price']
+        
+        if winning_price and winning_price > 0:
+            deviation_pct = ((bidder_price - winning_price) / winning_price) * 100
+            all_deviations.append(abs(deviation_pct))
+            
+            # Track by contract
+            if contract not in contracts:
+                contracts[contract] = {
+                    'contract_number': contract,
+                    'letting_date': row['letting_date'],
+                    'items_analyzed': 0,
+                    'items_unbalanced': 0,
+                    'total_deviation': 0,
+                    'unbalance_score': 0
+                }
+            
+            contracts[contract]['items_analyzed'] += 1
+            contracts[contract]['total_deviation'] += abs(deviation_pct)
+            
+            if abs(deviation_pct) > 25:
+                contracts[contract]['items_unbalanced'] += 1
+                
+                # Track commonly unbalanced items
+                if item_num not in item_deviations:
+                    item_deviations[item_num] = {
+                        'item_number': item_num,
+                        'description': row['item_description'][:50] if row['item_description'] else '',
+                        'times_high': 0,
+                        'times_low': 0,
+                        'avg_deviation': 0,
+                        'deviations': []
+                    }
+                
+                item_deviations[item_num]['deviations'].append(deviation_pct)
+                
+                if deviation_pct > 0:
+                    item_deviations[item_num]['times_high'] += 1
+                    total_high += 1
+                else:
+                    item_deviations[item_num]['times_low'] += 1
+                    total_low += 1
+    
+    # Calculate contract-level scores
+    contract_list = []
+    for contract_data in contracts.values():
+        if contract_data['items_analyzed'] > 0:
+            contract_data['unbalance_score'] = round(
+                contract_data['total_deviation'] / contract_data['items_analyzed'], 1
+            )
+        contract_list.append(contract_data)
+    
+    contract_list.sort(key=lambda x: x['unbalance_score'], reverse=True)
+    
+    # Calculate commonly unbalanced items
+    commonly_unbalanced = []
+    for item_data in item_deviations.values():
+        total_times = item_data['times_high'] + item_data['times_low']
+        if total_times >= 2:  # Item unbalanced at least twice
+            item_data['avg_deviation'] = round(
+                sum(item_data['deviations']) / len(item_data['deviations']), 1
+            )
+            item_data['total_times'] = total_times
+            item_data['tendency'] = 'high' if item_data['times_high'] > item_data['times_low'] else 'low'
+            del item_data['deviations']  # Remove raw data
+            commonly_unbalanced.append(item_data)
+    
+    commonly_unbalanced.sort(key=lambda x: x['total_times'], reverse=True)
+    
+    # Overall statistics
+    avg_unbalance_score = round(sum(all_deviations) / len(all_deviations), 1) if all_deviations else 0
+    unbalance_tendency = 'high' if total_high > total_low * 1.5 else ('low' if total_low > total_high * 1.5 else 'mixed')
+    
+    return {
+        "contractor_name": contractor_name,
+        "contracts_analyzed": len(contracts),
+        "average_unbalance_score": avg_unbalance_score,
+        "unbalance_tendency": unbalance_tendency,
+        "total_items_priced_high": total_high,
+        "total_items_priced_low": total_low,
+        "commonly_unbalanced_items": commonly_unbalanced[:20],
+        "contracts": contract_list[:50]
+    }
