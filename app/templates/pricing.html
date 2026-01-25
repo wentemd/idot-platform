@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pricing - Unit Price Intelligence</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            color: #e4e4e4;
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+        
+        .logo {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #fff;
+            text-decoration: none;
+            display: inline-block;
+            margin-bottom: 10px;
+        }
+        
+        .logo:hover {
+            color: #4fc3f7;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+            color: #fff;
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            color: #a0a0a0;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 30px;
+            margin-bottom: 60px;
+        }
+        
+        .pricing-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 40px 30px;
+            position: relative;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        
+        .pricing-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+        
+        .pricing-card.featured {
+            border-color: #4fc3f7;
+            background: rgba(79, 195, 247, 0.1);
+        }
+        
+        .badge {
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, #4fc3f7, #29b6f6);
+            color: #000;
+            padding: 6px 20px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        
+        .plan-name {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #fff;
+        }
+        
+        .plan-desc {
+            color: #a0a0a0;
+            margin-bottom: 25px;
+            font-size: 0.95rem;
+        }
+        
+        .price {
+            margin-bottom: 25px;
+        }
+        
+        .price-amount {
+            font-size: 3rem;
+            font-weight: 700;
+            color: #fff;
+        }
+        
+        .price-period {
+            font-size: 1.1rem;
+            color: #a0a0a0;
+        }
+        
+        .price-note {
+            font-size: 0.9rem;
+            color: #4fc3f7;
+            margin-top: 5px;
+        }
+        
+        .features-list {
+            list-style: none;
+            margin-bottom: 30px;
+        }
+        
+        .features-list li {
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .features-list li:last-child {
+            border-bottom: none;
+        }
+        
+        .check {
+            color: #4fc3f7;
+            font-weight: bold;
+        }
+        
+        .cross {
+            color: #666;
+        }
+        
+        .muted {
+            color: #666;
+        }
+        
+        .cta-button {
+            display: block;
+            width: 100%;
+            padding: 16px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-align: center;
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+        
+        .cta-primary {
+            background: linear-gradient(135deg, #4fc3f7, #29b6f6);
+            color: #000;
+        }
+        
+        .cta-primary:hover {
+            transform: scale(1.02);
+            box-shadow: 0 8px 25px rgba(79, 195, 247, 0.4);
+        }
+        
+        .cta-secondary {
+            background: transparent;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            color: #fff;
+        }
+        
+        .cta-secondary:hover {
+            border-color: #4fc3f7;
+            color: #4fc3f7;
+        }
+        
+        .comparison-section {
+            margin-bottom: 60px;
+        }
+        
+        .comparison-section h2 {
+            text-align: center;
+            font-size: 1.8rem;
+            margin-bottom: 30px;
+            color: #fff;
+        }
+        
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        
+        .comparison-table th,
+        .comparison-table td {
+            padding: 18px 20px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .comparison-table th {
+            background: rgba(255, 255, 255, 0.05);
+            font-weight: 600;
+            color: #fff;
+        }
+        
+        .comparison-table td:nth-child(2),
+        .comparison-table td:nth-child(3),
+        .comparison-table th:nth-child(2),
+        .comparison-table th:nth-child(3) {
+            text-align: center;
+        }
+        
+        .faq-section {
+            margin-bottom: 60px;
+        }
+        
+        .faq-section h2 {
+            text-align: center;
+            font-size: 1.8rem;
+            margin-bottom: 30px;
+            color: #fff;
+        }
+        
+        .faq-item {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            margin-bottom: 15px;
+            overflow: hidden;
+        }
+        
+        .faq-question {
+            padding: 20px 25px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 500;
+            color: #fff;
+        }
+        
+        .faq-question:hover {
+            background: rgba(255, 255, 255, 0.02);
+        }
+        
+        .faq-answer {
+            padding: 0 25px 20px;
+            color: #a0a0a0;
+            display: none;
+        }
+        
+        .faq-item.active .faq-answer {
+            display: block;
+        }
+        
+        .faq-item.active .faq-toggle {
+            transform: rotate(45deg);
+        }
+        
+        .faq-toggle {
+            font-size: 1.5rem;
+            transition: transform 0.3s;
+            color: #4fc3f7;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 30px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            color: #666;
+        }
+        
+        footer a {
+            color: #4fc3f7;
+            text-decoration: none;
+        }
+        
+        footer a:hover {
+            text-decoration: underline;
+        }
+        
+        .footer-links {
+            margin-top: 15px;
+        }
+        
+        .footer-links a {
+            margin: 0 15px;
+        }
+        
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 1.8rem;
+            }
+            
+            .pricing-card {
+                padding: 30px 20px;
+            }
+            
+            .price-amount {
+                font-size: 2.5rem;
+            }
+            
+            .comparison-table {
+                font-size: 0.9rem;
+            }
+            
+            .comparison-table th,
+            .comparison-table td {
+                padding: 12px 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <a href="/" class="logo">🏗️ Unit Price Intelligence</a>
+            <h1>Simple, Transparent Pricing</h1>
+            <p class="subtitle">Get the competitive edge with historical bid pricing data. Start free, upgrade when you need more.</p>
+        </header>
+        
+        <div class="pricing-grid">
+            <!-- Free Plan -->
+            <div class="pricing-card">
+                <h3 class="plan-name">Free</h3>
+                <p class="plan-desc">Perfect for occasional lookups and getting started</p>
+                <div class="price">
+                    <span class="price-amount">$0</span>
+                    <span class="price-period">/month</span>
+                </div>
+                <ul class="features-list">
+                    <li><span class="check">✓</span> 5 searches per day</li>
+                    <li><span class="check">✓</span> Pay Item Search</li>
+                    <li><span class="check">✓</span> Contractor Search</li>
+                    <li><span class="check">✓</span> Contract Lookup</li>
+                    <li><span class="check">✓</span> Browse Items</li>
+                    <li><span class="check">✓</span> 50 results per query</li>
+                    <li><span class="cross">✗</span> <span class="muted">Estimator Tool</span></li>
+                    <li><span class="cross">✗</span> <span class="muted">Priority support</span></li>
+                </ul>
+                <a href="/" class="cta-button cta-secondary">Get Started Free</a>
+            </div>
+            
+            <!-- Pro Monthly -->
+            <div class="pricing-card featured">
+                <span class="badge">Most Popular</span>
+                <h3 class="plan-name">Pro Monthly</h3>
+                <p class="plan-desc">For estimators and contractors who bid regularly</p>
+                <div class="price">
+                    <span class="price-amount">$29</span>
+                    <span class="price-period">/month</span>
+                    <p class="price-note">7-day free trial included</p>
+                </div>
+                <ul class="features-list">
+                    <li><span class="check">✓</span> <strong>Unlimited searches</strong></li>
+                    <li><span class="check">✓</span> Pay Item Search</li>
+                    <li><span class="check">✓</span> Contractor Search</li>
+                    <li><span class="check">✓</span> Contract Lookup</li>
+                    <li><span class="check">✓</span> Browse Items</li>
+                    <li><span class="check">✓</span> <strong>500 results per query</strong></li>
+                    <li><span class="check">✓</span> <strong>Estimator Tool</strong> - bulk pricing</li>
+                    <li><span class="check">✓</span> Priority support</li>
+                </ul>
+                <a href="/" class="cta-button cta-primary">Start 7-Day Free Trial</a>
+            </div>
+            
+            <!-- Pro Annual -->
+            <div class="pricing-card">
+                <h3 class="plan-name">Pro Annual</h3>
+                <p class="plan-desc">Best value for serious professionals</p>
+                <div class="price">
+                    <span class="price-amount">$299</span>
+                    <span class="price-period">/year</span>
+                    <p class="price-note">Save $49/year (14% off)</p>
+                </div>
+                <ul class="features-list">
+                    <li><span class="check">✓</span> <strong>Unlimited searches</strong></li>
+                    <li><span class="check">✓</span> Pay Item Search</li>
+                    <li><span class="check">✓</span> Contractor Search</li>
+                    <li><span class="check">✓</span> Contract Lookup</li>
+                    <li><span class="check">✓</span> Browse Items</li>
+                    <li><span class="check">✓</span> <strong>500 results per query</strong></li>
+                    <li><span class="check">✓</span> <strong>Estimator Tool</strong> - bulk pricing</li>
+                    <li><span class="check">✓</span> Priority support</li>
+                </ul>
+                <a href="/" class="cta-button cta-primary">Start 7-Day Free Trial</a>
+            </div>
+        </div>
+        
+        <!-- Feature Comparison -->
+        <section class="comparison-section">
+            <h2>Feature Comparison</h2>
+            <table class="comparison-table">
+                <thead>
+                    <tr>
+                        <th>Feature</th>
+                        <th>Free</th>
+                        <th>Pro</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Daily Searches</td>
+                        <td>5</td>
+                        <td><strong>Unlimited</strong></td>
+                    </tr>
+                    <tr>
+                        <td>Results per Query</td>
+                        <td>50</td>
+                        <td><strong>500</strong></td>
+                    </tr>
+                    <tr>
+                        <td>Pay Item Search</td>
+                        <td><span class="check">✓</span></td>
+                        <td><span class="check">✓</span></td>
+                    </tr>
+                    <tr>
+                        <td>Contractor Search</td>
+                        <td><span class="check">✓</span></td>
+                        <td><span class="check">✓</span></td>
+                    </tr>
+                    <tr>
+                        <td>Contract Lookup</td>
+                        <td><span class="check">✓</span></td>
+                        <td><span class="check">✓</span></td>
+                    </tr>
+                    <tr>
+                        <td>Browse Items Catalog</td>
+                        <td><span class="check">✓</span></td>
+                        <td><span class="check">✓</span></td>
+                    </tr>
+                    <tr>
+                        <td>Estimator Tool (Excel Upload)</td>
+                        <td><span class="cross">✗</span></td>
+                        <td><span class="check">✓</span></td>
+                    </tr>
+                    <tr>
+                        <td>Priority Support</td>
+                        <td><span class="cross">✗</span></td>
+                        <td><span class="check">✓</span></td>
+                    </tr>
+                    <tr>
+                        <td>Historical Data (2018-2025)</td>
+                        <td><span class="check">✓</span></td>
+                        <td><span class="check">✓</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+        
+        <!-- FAQ Section -->
+        <section class="faq-section">
+            <h2>Frequently Asked Questions</h2>
+            
+            <div class="faq-item">
+                <div class="faq-question">
+                    <span>What data is included in the platform?</span>
+                    <span class="faq-toggle">+</span>
+                </div>
+                <div class="faq-answer">
+                    Our database contains over 1.18 million bid records from Illinois Department of Transportation (IDOT) bid tabulations spanning 2018-2025. This includes data from 6,900+ contracts, 500+ contractors, and 12,400+ unique pay items across all 114 Illinois counties.
+                </div>
+            </div>
+            
+            <div class="faq-item">
+                <div class="faq-question">
+                    <span>How does the 7-day free trial work?</span>
+                    <span class="faq-toggle">+</span>
+                </div>
+                <div class="faq-answer">
+                    Start your Pro subscription with full access to all features. You won't be charged until your 7-day trial ends. Cancel anytime during the trial and you won't be billed. No commitment required.
+                </div>
+            </div>
+            
+            <div class="faq-item">
+                <div class="faq-question">
+                    <span>What is the Estimator Tool?</span>
+                    <span class="faq-toggle">+</span>
+                </div>
+                <div class="faq-answer">
+                    The Estimator Tool lets you upload an Excel file containing pay items and quantities. It automatically returns weighted average unit prices based on historical winning bids, filtered by your selected districts and date range. Perfect for quickly pricing out entire bid sheets.
+                </div>
+            </div>
+            
+            <div class="faq-item">
+                <div class="faq-question">
+                    <span>Can I cancel my subscription anytime?</span>
+                    <span class="faq-toggle">+</span>
+                </div>
+                <div class="faq-answer">
+                    Yes, you can cancel your subscription at any time. For monthly plans, you'll retain access until the end of your current billing period. For annual plans, you'll have access for the remainder of your subscription year.
+                </div>
+            </div>
+            
+            <div class="faq-item">
+                <div class="faq-question">
+                    <span>How accurate is the pricing data?</span>
+                    <span class="faq-toggle">+</span>
+                </div>
+                <div class="faq-answer">
+                    Our data is parsed directly from official IDOT bid tabulation documents. While we strive for accuracy, the data may contain parsing errors or be incomplete. We recommend using this data as a reference point and always verifying critical pricing decisions with official IDOT sources.
+                </div>
+            </div>
+            
+            <div class="faq-item">
+                <div class="faq-question">
+                    <span>Do you offer refunds?</span>
+                    <span class="faq-toggle">+</span>
+                </div>
+                <div class="faq-answer">
+                    We offer a 7-day free trial so you can evaluate the platform before committing. If you're unsatisfied after subscribing, contact us within 14 days of your first payment for a full refund. After 14 days, we do not offer refunds but you can cancel to prevent future charges.
+                </div>
+            </div>
+        </section>
+        
+        <footer>
+            <p>Unit Price Intelligence Platform • Data compiled from IDOT bid tabulations</p>
+            <div class="footer-links">
+                <a href="/">Home</a>
+                <a href="/terms">Terms of Service</a>
+                <a href="/privacy">Privacy Policy</a>
+            </div>
+        </footer>
+    </div>
+    
+    <script>
+        // FAQ Accordion functionality
+        document.querySelectorAll('.faq-question').forEach(question => {
+            question.addEventListener('click', () => {
+                const item = question.parentElement;
+                item.classList.toggle('active');
+            });
+        });
+    </script>
+</body>
+</html>
