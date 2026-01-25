@@ -1767,6 +1767,22 @@
                                     <div class="label">Total Won Value</div>
                                 </div>
                             </div>
+                            ${stat.contracts_as_second > 0 ? `
+                            <div class="contractor-stats" style="margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid #eee;">
+                                <div class="contractor-stat">
+                                    <div class="value">${stat.contracts_as_second}</div>
+                                    <div class="label">2nd Place Finishes</div>
+                                </div>
+                                <div class="contractor-stat">
+                                    <div class="value" style="color: #dc3545;">${formatCurrency(stat.total_left_on_table)}</div>
+                                    <div class="label">Left on Table</div>
+                                </div>
+                                <div class="contractor-stat">
+                                    <div class="value" style="color: #dc3545;">${stat.left_on_table_pct}%</div>
+                                    <div class="label">Avg Margin Lost By</div>
+                                </div>
+                            </div>
+                            ` : ''}
                             <div style="margin-top: 1rem;">
                                 <button class="btn btn-primary" onclick="analyzeContractorUnbalancing('${stat.bidder_name}')" style="width: auto; padding: 0.5rem 1rem; background: #6c757d;">
                                     📊 Analyze Unbalancing Pattern
@@ -1908,6 +1924,16 @@
                                 <div class="value">${winner?.name?.substring(0, 20) || '—'}</div>
                                 <div class="label">Winner</div>
                             </div>
+                            ${data.left_on_table !== null ? `
+                            <div class="summary-stat">
+                                <div class="value" style="color: #dc3545;">${formatCurrency(data.left_on_table)}</div>
+                                <div class="label">Left on Table (#2)</div>
+                            </div>
+                            <div class="summary-stat">
+                                <div class="value" style="color: #dc3545;">${data.left_on_table_pct}%</div>
+                                <div class="label">Margin</div>
+                            </div>
+                            ` : ''}
                         </div>
                         <div style="margin-top: 1rem;">
                             <button class="btn btn-primary" onclick="analyzeContractUnbalancing('${contract}')" style="width: auto; padding: 0.5rem 1rem;">
