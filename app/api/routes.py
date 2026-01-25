@@ -1,5 +1,5 @@
 """
-IDOT Bid Intelligence Platform - API Routes
+Unit Price Intelligence Platform - API Routes
 Routes for the flat bids table schema with security hardening
 """
 from fastapi import APIRouter, HTTPException, Query, UploadFile, File, Form, Request
@@ -296,12 +296,45 @@ async def search_pay_item(
     cursor.execute(stats_query, stats_params)
     yearly_stats = [dict(row) for row in cursor.fetchall()]
     
+    # Calculate overall weighted average from WINNING BIDS ONLY
+    overall_query = """
+        SELECT 
+            ROUND(SUM(extension) / NULLIF(SUM(quantity), 0), 2) as weighted_avg
+        FROM bids
+        WHERE item_number LIKE ?
+        AND unit_price > 0
+        AND quantity > 0
+        AND is_winner = 'Y'
+    """
+    overall_params = [f"%{item_number}%"]
+    
+    if county:
+        overall_query += " AND county LIKE ?"
+        overall_params.append(f"%{county}%")
+    
+    if district:
+        overall_query += " AND district LIKE ?"
+        overall_params.append(f"%{district}%")
+    
+    if year_start:
+        overall_query += " AND CAST(substr(letting_date, length(letting_date)-3) AS INTEGER) >= ?"
+        overall_params.append(year_start)
+    
+    if year_end:
+        overall_query += " AND CAST(substr(letting_date, length(letting_date)-3) AS INTEGER) <= ?"
+        overall_params.append(year_end)
+    
+    cursor.execute(overall_query, overall_params)
+    overall_row = cursor.fetchone()
+    overall_weighted_avg = overall_row['weighted_avg'] if overall_row else None
+    
     conn.close()
     
     return {
         "item_number": item_number,
         "filters": {"county": county, "district": district, "year_start": year_start, "year_end": year_end},
         "result_count": len(rows),
+        "overall_weighted_avg": overall_weighted_avg,
         "yearly_trends": yearly_stats,
         "bids": [dict(row) for row in rows]
     }
