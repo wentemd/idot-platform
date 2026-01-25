@@ -1535,13 +1535,17 @@ async def analyze_contractor_unbalancing(request: Request, contractor_name: str)
     for item in commonly_unbalanced:
         item['total_variance'] = item.get('avg_deviation', 0)
     
+    # Calculate total items analyzed
+    total_items_analyzed = sum(c['items_analyzed'] for c in contracts.values())
+    
     return {
         "contractor_name": contractor_name,
         "contracts_analyzed": len(contracts),
         "average_unbalance_score": avg_unbalance_score,
         "unbalance_tendency": unbalance_tendency,
-        "total_items_priced_high": total_high,
-        "total_items_priced_low": total_low,
+        "total_items_analyzed": total_items_analyzed,
+        "total_items_high": total_high,
+        "total_items_low": total_low,
         "commonly_unbalanced_items": commonly_unbalanced[:20],
         "contract_history": contract_list[:50]
     }
