@@ -1344,8 +1344,8 @@ async def get_estimator_template(request: Request):
 async def analyze_contract_unbalancing(request: Request, contract_number: str):
     """
     Analyze bid unbalancing for a specific contract.
-    Compares each bidder's item prices to the winning bid prices.
-    Flags items priced significantly above or below the winner.
+    Compares each bidder's item prices to the HISTORICAL weighted average from all contracts.
+    Flags items priced significantly above or below market average.
     """
     conn = get_db()
     cursor = conn.cursor()
@@ -1370,12 +1370,32 @@ async def analyze_contract_unbalancing(request: Request, contract_number: str):
     """, [f"%{contract_number}%"])
     
     rows = cursor.fetchall()
-    conn.close()
     
     if not rows:
+        conn.close()
         raise HTTPException(status_code=404, detail="Contract not found")
     
-    # Organize data by item and find winning prices
+    # Get unique item numbers from this contract
+    item_numbers = list(set(row['item_number'] for row in rows))
+    
+    # Get historical weighted average for each item (from winning bids only)
+    placeholders = ','.join(['?' for _ in item_numbers])
+    cursor.execute(f"""
+        SELECT 
+            item_number,
+            SUM(extension) / NULLIF(SUM(quantity), 0) as weighted_avg_price
+        FROM bids
+        WHERE item_number IN ({placeholders})
+        AND is_winner = 'Y'
+        AND unit_price > 0
+        AND quantity > 0
+        GROUP BY item_number
+    """, item_numbers)
+    
+    historical_prices = {row['item_number']: row['weighted_avg_price'] for row in cursor.fetchall()}
+    conn.close()
+    
+    # Organize data by item and bidder
     items = {}
     bidders = {}
     
@@ -1406,29 +1426,26 @@ async def analyze_contract_unbalancing(request: Request, contract_number: str):
                 'description': row['item_description'],
                 'quantity': row['quantity'],
                 'unit': row['unit'],
-                'winning_price': None,
+                'historical_avg': historical_prices.get(item_num),
                 'prices': {}
             }
         
         items[item_num]['prices'][bidder] = row['unit_price']
         bidders[bidder]['items'][item_num] = row['unit_price']
         bidders[bidder]['quantities'][item_num] = row['quantity']
-        
-        if row['is_winner'] == 'Y':
-            items[item_num]['winning_price'] = row['unit_price']
     
-    # Analyze each bidder's pricing vs winner
+    # Analyze each bidder's pricing vs historical average
     for bidder_name, bidder_data in bidders.items():
         total_deviation = 0
         item_count = 0
         
         for item_num, bidder_price in bidder_data['items'].items():
-            winning_price = items[item_num]['winning_price']
+            historical_avg = items[item_num]['historical_avg']
             quantity = bidder_data['quantities'].get(item_num, 0)
             
-            if winning_price and winning_price > 0:
-                deviation_pct = ((bidder_price - winning_price) / winning_price) * 100
-                variance_dollars = (bidder_price - winning_price) * quantity
+            if historical_avg and historical_avg > 0:
+                deviation_pct = ((bidder_price - historical_avg) / historical_avg) * 100
+                variance_dollars = (bidder_price - historical_avg) * quantity
                 item_count += 1
                 total_deviation += abs(deviation_pct)
                 bidder_data['total_variance_dollars'] += variance_dollars
@@ -1441,7 +1458,7 @@ async def analyze_contract_unbalancing(request: Request, contract_number: str):
                         'description': items[item_num]['description'][:50] if items[item_num]['description'] else '',
                         'quantity': quantity,
                         'their_price': round(bidder_price, 2),
-                        'avg_price': round(winning_price, 2),
+                        'avg_price': round(historical_avg, 2),
                         'variance_pct': round(deviation_pct, 1),
                         'variance_dollars': round(variance_dollars, 2),
                         'is_high': is_high
@@ -1493,38 +1510,54 @@ async def analyze_contract_unbalancing(request: Request, contract_number: str):
 async def analyze_contractor_unbalancing(request: Request, contractor_name: str):
     """
     Analyze a contractor's bid unbalancing patterns across multiple contracts.
+    Compares their prices to HISTORICAL weighted averages from all contracts.
     Identifies commonly unbalanced items and overall pricing tendencies.
     """
     conn = get_db()
     cursor = conn.cursor()
     
-    # Get contractor's bids with winning prices for comparison
+    # Get contractor's bids
     cursor.execute("""
         SELECT 
-            b1.contract_number,
-            b1.letting_date,
-            b1.item_number,
-            b1.item_description,
-            b1.unit_price as bidder_price,
-            b1.quantity,
-            b1.is_winner,
-            b2.unit_price as winning_price
-        FROM bids b1
-        LEFT JOIN bids b2 ON b1.contract_number = b2.contract_number 
-            AND b1.item_number = b2.item_number 
-            AND b2.is_winner = 'Y'
-        WHERE b1.bidder_name LIKE ?
-        AND b1.unit_price > 0
-        AND b1.quantity > 0
-        AND b2.unit_price > 0
-        ORDER BY b1.letting_date DESC
+            contract_number,
+            letting_date,
+            item_number,
+            item_description,
+            unit_price as bidder_price,
+            quantity,
+            is_winner
+        FROM bids
+        WHERE bidder_name LIKE ?
+        AND unit_price > 0
+        AND quantity > 0
+        ORDER BY letting_date DESC
     """, [f"%{contractor_name}%"])
     
     rows = cursor.fetchall()
-    conn.close()
     
     if not rows:
+        conn.close()
         raise HTTPException(status_code=404, detail="Contractor not found or no comparable data")
+    
+    # Get unique item numbers
+    item_numbers = list(set(row['item_number'] for row in rows))
+    
+    # Get historical weighted averages for all items (from winning bids)
+    placeholders = ','.join(['?' for _ in item_numbers])
+    cursor.execute(f"""
+        SELECT 
+            item_number,
+            SUM(extension) / NULLIF(SUM(quantity), 0) as weighted_avg_price
+        FROM bids
+        WHERE item_number IN ({placeholders})
+        AND is_winner = 'Y'
+        AND unit_price > 0
+        AND quantity > 0
+        GROUP BY item_number
+    """, item_numbers)
+    
+    historical_prices = {row['item_number']: row['weighted_avg_price'] for row in cursor.fetchall()}
+    conn.close()
     
     # Analyze patterns
     contracts = {}
@@ -1537,10 +1570,10 @@ async def analyze_contractor_unbalancing(request: Request, contractor_name: str)
         contract = row['contract_number']
         item_num = row['item_number']
         bidder_price = row['bidder_price']
-        winning_price = row['winning_price']
+        historical_avg = historical_prices.get(item_num)
         
-        if winning_price and winning_price > 0:
-            deviation_pct = ((bidder_price - winning_price) / winning_price) * 100
+        if historical_avg and historical_avg > 0:
+            deviation_pct = ((bidder_price - historical_avg) / historical_avg) * 100
             all_deviations.append(abs(deviation_pct))
             
             # Track by contract
@@ -1558,12 +1591,12 @@ async def analyze_contractor_unbalancing(request: Request, contractor_name: str)
             contracts[contract]['items_analyzed'] += 1
             contracts[contract]['total_deviation'] += abs(deviation_pct)
             
-            if abs(deviation_pct) > 25:
+            if abs(deviation_pct) > 50:  # Using 50% threshold
                 contracts[contract]['items_unbalanced'] += 1
                 
                 # Calculate dollar variance
                 quantity = row['quantity'] or 0
-                dollar_variance = (bidder_price - winning_price) * quantity
+                dollar_variance = (bidder_price - historical_avg) * quantity
                 
                 # Track commonly unbalanced items
                 if item_num not in item_deviations:
