@@ -487,10 +487,45 @@ async def search_contractor(
     won_value_row = cursor.fetchone()
     total_won_value = won_value_row['total_won_value'] if won_value_row and won_value_row['total_won_value'] else 0
     
+    # Calculate "money left on table" for contracts where contractor was #2
+    # (How much they would have needed to lower their bid to win)
+    left_on_table_query = f"""
+        SELECT 
+            b1.contract_number,
+            b1.total_bid_amount as second_place_bid,
+            b2.total_bid_amount as winning_bid,
+            (b1.total_bid_amount - b2.total_bid_amount) as left_on_table
+        FROM bids b1
+        JOIN bids b2 ON b1.contract_number = b2.contract_number 
+            AND b2.is_winner = 'Y'
+            AND b1.item_number = b2.item_number
+        WHERE b1.bidder_name LIKE ?
+            AND b1.bidder_rank = 2
+        GROUP BY b1.contract_number
+    """
+    
+    cursor.execute(left_on_table_query, [f"%{name}%"])
+    left_on_table_rows = cursor.fetchall()
+    
+    total_left_on_table = 0
+    total_second_place_bids = 0
+    contracts_as_second = len(left_on_table_rows)
+    
+    for row in left_on_table_rows:
+        if row['left_on_table']:
+            total_left_on_table += row['left_on_table']
+        if row['second_place_bid']:
+            total_second_place_bids += row['second_place_bid']
+    
+    left_on_table_pct = round((total_left_on_table / total_second_place_bids) * 100, 2) if total_second_place_bids > 0 else 0
+    
     stats = []
     for row in stats_rows:
         stat = dict(row)
         stat['total_won_value'] = total_won_value
+        stat['contracts_as_second'] = contracts_as_second
+        stat['total_left_on_table'] = round(total_left_on_table, 2)
+        stat['left_on_table_pct'] = left_on_table_pct
         stats.append(stat)
     
     conn.close()
@@ -580,11 +615,23 @@ async def search_contract(request: Request, contract_number: str):
     # Sort bidders by rank
     sorted_bidders = sorted(bidders_info.items(), key=lambda x: x[1]['rank'])
     
+    # Calculate money left on table (difference between #2 and #1)
+    left_on_table = None
+    left_on_table_pct = None
+    if len(sorted_bidders) >= 2:
+        winner_bid = sorted_bidders[0][1]['total_bid']
+        second_bid = sorted_bidders[1][1]['total_bid']
+        if winner_bid and second_bid and winner_bid > 0:
+            left_on_table = round(second_bid - winner_bid, 2)
+            left_on_table_pct = round((left_on_table / winner_bid) * 100, 2)
+    
     return {
         "contract_number": contract_number,
         "result_count": len(bids),
         "bidders": [{"name": name, **info} for name, info in sorted_bidders],
         "items_comparison": list(items_comparison.values()),
+        "left_on_table": left_on_table,
+        "left_on_table_pct": left_on_table_pct,
         "bids": bids  # Keep raw bids for backward compatibility
     }
 
@@ -1481,6 +1528,10 @@ async def analyze_contractor_unbalancing(request: Request, contractor_name: str)
             if abs(deviation_pct) > 25:
                 contracts[contract]['items_unbalanced'] += 1
                 
+                # Calculate dollar variance
+                quantity = row['quantity'] or 0
+                dollar_variance = (bidder_price - winning_price) * quantity
+                
                 # Track commonly unbalanced items
                 if item_num not in item_deviations:
                     item_deviations[item_num] = {
@@ -1489,10 +1540,12 @@ async def analyze_contractor_unbalancing(request: Request, contractor_name: str)
                         'times_high': 0,
                         'times_low': 0,
                         'avg_deviation': 0,
+                        'total_dollar_variance': 0,
                         'deviations': []
                     }
                 
                 item_deviations[item_num]['deviations'].append(deviation_pct)
+                item_deviations[item_num]['total_dollar_variance'] += dollar_variance
                 
                 if deviation_pct > 0:
                     item_deviations[item_num]['times_high'] += 1
@@ -1531,9 +1584,10 @@ async def analyze_contractor_unbalancing(request: Request, contractor_name: str)
     avg_unbalance_score = round(sum(all_deviations) / len(all_deviations), 1) if all_deviations else 0
     unbalance_tendency = 'high' if total_high > total_low * 1.5 else ('low' if total_low > total_high * 1.5 else 'mixed')
     
-    # Add total_variance field to commonly_unbalanced items (frontend expects this)
+    # Add total_variance field to commonly_unbalanced items (frontend expects this as dollars)
     for item in commonly_unbalanced:
-        item['total_variance'] = item.get('avg_deviation', 0)
+        item['total_variance'] = round(item.get('total_dollar_variance', 0), 2)
+        del item['total_dollar_variance']  # Clean up
     
     # Calculate total items analyzed
     total_items_analyzed = sum(c['items_analyzed'] for c in contracts.values())
