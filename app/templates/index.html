@@ -180,6 +180,291 @@
         /* END HERO METRICS STYLES */
         /* ============================================ */
 
+        /* ============================================ */
+        /* CONTRACTOR COMPARISON STYLES */
+        /* ============================================ */
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .contractor-compare-card {
+            background: white;
+            border-radius: 10px;
+            padding: 1.25rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            border: 2px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .contractor-compare-card:hover {
+            box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+        }
+
+        .contractor-compare-card.rank-1 {
+            border-color: #ffd700;
+            background: linear-gradient(135deg, #fffef0 0%, #ffffff 100%);
+        }
+
+        .contractor-compare-card.rank-2 {
+            border-color: #c0c0c0;
+        }
+
+        .contractor-compare-card.rank-3 {
+            border-color: #cd7f32;
+        }
+
+        .contractor-compare-card .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid #eee;
+        }
+
+        .contractor-compare-card .contractor-name {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #1e3a5f;
+            max-width: 200px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .contractor-compare-card .rank-badge {
+            background: #1e3a5f;
+            color: white;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .contractor-compare-card .rank-badge.gold {
+            background: linear-gradient(135deg, #ffd700 0%, #ffec8b 100%);
+            color: #333;
+        }
+
+        .compare-metrics {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.75rem;
+        }
+
+        .compare-metric {
+            text-align: center;
+            padding: 0.5rem;
+            background: #f8f9fa;
+            border-radius: 6px;
+        }
+
+        .compare-metric .metric-value {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #2c3e50;
+        }
+
+        .compare-metric .metric-label {
+            font-size: 0.7rem;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .compare-metric.highlight {
+            background: #d4edda;
+        }
+
+        .compare-metric.highlight .metric-value {
+            color: #28a745;
+        }
+
+        .compare-chart-container {
+            margin-top: 1.5rem;
+            padding: 1.5rem;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .compare-chart-container h4 {
+            color: #1e3a5f;
+            margin-bottom: 1rem;
+            font-size: 1rem;
+        }
+
+        .bar-chart {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .bar-row {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .bar-label {
+            width: 120px;
+            font-size: 0.85rem;
+            color: #333;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .bar-container {
+            flex: 1;
+            height: 28px;
+            background: #e9ecef;
+            border-radius: 4px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .bar-fill {
+            height: 100%;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 8px;
+            color: white;
+            font-size: 0.8rem;
+            font-weight: 600;
+            min-width: 40px;
+            transition: width 0.5s ease;
+        }
+
+        .bar-fill.win-rate { background: linear-gradient(90deg, #28a745 0%, #20c997 100%); }
+        .bar-fill.contracts { background: linear-gradient(90deg, #1e3a5f 0%, #2d5a87 100%); }
+        .bar-fill.value { background: linear-gradient(90deg, #ffc107 0%, #fd7e14 100%); color: #333; }
+        .bar-fill.avg-rank { background: linear-gradient(90deg, #6f42c1 0%, #e83e8c 100%); }
+
+        .bar-value {
+            width: 80px;
+            text-align: right;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .head-to-head-box {
+            background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%);
+            color: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            margin-top: 1.5rem;
+            text-align: center;
+        }
+
+        .head-to-head-box h4 {
+            margin-bottom: 1rem;
+            font-size: 1rem;
+            opacity: 0.9;
+        }
+
+        .head-to-head-score {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        .h2h-side {
+            text-align: center;
+        }
+
+        .h2h-name {
+            font-size: 0.85rem;
+            opacity: 0.8;
+            margin-bottom: 0.25rem;
+        }
+
+        .h2h-wins {
+            font-size: 2.5rem;
+            font-weight: 700;
+        }
+
+        .h2h-vs {
+            font-size: 1.25rem;
+            opacity: 0.6;
+        }
+
+        .btn-secondary {
+            padding: 0.5rem 1rem;
+            background: #f8f9fa;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+        }
+
+        .btn-secondary:hover {
+            background: #e9ecef;
+            border-color: #ccc;
+        }
+
+        .leaderboard-table {
+            width: 100%;
+            margin-top: 1rem;
+        }
+
+        .leaderboard-table th {
+            background: #1e3a5f;
+            color: white;
+            padding: 0.75rem 0.5rem;
+            text-align: left;
+            font-size: 0.85rem;
+        }
+
+        .leaderboard-table td {
+            padding: 0.6rem 0.5rem;
+            border-bottom: 1px solid #eee;
+            font-size: 0.9rem;
+        }
+
+        .leaderboard-table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .leaderboard-table .rank-col {
+            width: 40px;
+            text-align: center;
+            font-weight: 700;
+        }
+
+        .leaderboard-table .rank-1 { color: #ffd700; }
+        .leaderboard-table .rank-2 { color: #c0c0c0; }
+        .leaderboard-table .rank-3 { color: #cd7f32; }
+
+        @media (max-width: 768px) {
+            .comparison-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .bar-label {
+                width: 80px;
+                font-size: 0.75rem;
+            }
+            
+            .head-to-head-score {
+                gap: 1rem;
+            }
+            
+            .h2h-wins {
+                font-size: 2rem;
+            }
+        }
+        /* END CONTRACTOR COMPARISON STYLES */
+        /* ============================================ */
+
         .header {
             background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%);
             color: white;
@@ -1147,6 +1432,7 @@
             <div class="tab-buttons">
                 <button class="tab-button active" data-tab="payitem">Pay Item Search</button>
                 <button class="tab-button" data-tab="contractor">Contractor Search</button>
+                <button class="tab-button" data-tab="compare">📊 Compare Contractors</button>
                 <button class="tab-button" data-tab="contract">Contract Lookup</button>
                 <button class="tab-button" data-tab="browse">Browse Items</button>
                 <button class="tab-button pro-feature" data-tab="estimator">📊 Estimator Tool</button>
@@ -1229,6 +1515,48 @@
                         <option value="2019">2019</option>
                         <option value="2018">2018</option>
                     </select>
+                </div>
+            </div>
+
+            <!-- Compare Contractors -->
+            <div id="compare-tab" class="tab-content hidden">
+                <div class="compare-intro">
+                    <p style="color: #666; margin-bottom: 1rem;">Compare up to 6 contractors side-by-side. Enter contractor names separated by commas.</p>
+                </div>
+                <div class="search-box">
+                    <input type="text" id="compareInput" placeholder="Enter contractors (e.g., K-Five, Gallagher, Curran)" style="flex: 2;" />
+                    <button onclick="compareContractors()">Compare</button>
+                </div>
+                <div class="filters">
+                    <label>District:</label>
+                    <select id="compareDistrict">
+                        <option value="">All</option>
+                    </select>
+                    <label>Year From:</label>
+                    <select id="compareYearStart">
+                        <option value="">All</option>
+                        <option value="2025">2025</option>
+                        <option value="2024">2024</option>
+                        <option value="2023">2023</option>
+                        <option value="2022">2022</option>
+                        <option value="2021">2021</option>
+                        <option value="2020">2020</option>
+                    </select>
+                    <label>To:</label>
+                    <select id="compareYearEnd">
+                        <option value="">All</option>
+                        <option value="2025">2025</option>
+                        <option value="2024">2024</option>
+                        <option value="2023">2023</option>
+                        <option value="2022">2022</option>
+                        <option value="2021">2021</option>
+                        <option value="2020">2020</option>
+                    </select>
+                </div>
+                <div style="margin-top: 1rem;">
+                    <button class="btn-secondary" onclick="loadTopContractors('wins')" style="margin-right: 0.5rem;">🏆 Top by Wins</button>
+                    <button class="btn-secondary" onclick="loadTopContractors('win_rate')" style="margin-right: 0.5rem;">📈 Top by Win Rate</button>
+                    <button class="btn-secondary" onclick="loadTopContractors('value')">💰 Top by Value</button>
                 </div>
             </div>
 
@@ -1864,6 +2192,7 @@
                 
                 document.getElementById('payItemDistrict').innerHTML = districtOptions;
                 document.getElementById('contractorDistrict').innerHTML = districtOptions;
+                document.getElementById('compareDistrict').innerHTML = districtOptions;
                 
                 const estimatorOptions = data.districts.map(d => 
                     `<option value="${d.district}">${d.district} (${d.contract_count} contracts)</option>`
@@ -2203,6 +2532,386 @@
             } catch (error) {
                 resultsDiv.innerHTML = `<div class="error">Error: ${error.message}</div>`;
             }
+        }
+
+        // ============================================================================
+        // CONTRACTOR COMPARISON
+        // ============================================================================
+        
+        async function compareContractors() {
+            const input = document.getElementById('compareInput').value.trim();
+            if (!input) return;
+            
+            const contractors = input.split(',').map(c => c.trim()).filter(c => c);
+            if (contractors.length < 2) {
+                alert('Please enter at least 2 contractor names separated by commas');
+                return;
+            }
+            
+            const district = document.getElementById('compareDistrict').value;
+            const yearStart = document.getElementById('compareYearStart').value;
+            const yearEnd = document.getElementById('compareYearEnd').value;
+            
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '<div class="loading">Comparing contractors</div>';
+            
+            try {
+                let url = `/api/compare/contractors?contractors=${encodeURIComponent(contractors.join(','))}`;
+                if (district) url += `&district=${encodeURIComponent(district)}`;
+                if (yearStart) url += `&year_start=${yearStart}`;
+                if (yearEnd) url += `&year_end=${yearEnd}`;
+                
+                const response = await fetch(url);
+                if (!response.ok) throw new Error('Failed to compare contractors');
+                
+                const data = await response.json();
+                
+                if (data.contractor_count === 0) {
+                    resultsDiv.innerHTML = '<div class="no-results">No matching contractors found.</div>';
+                    return;
+                }
+                
+                renderContractorComparison(data);
+                
+            } catch (error) {
+                resultsDiv.innerHTML = `<div class="error">Error: ${error.message}</div>`;
+            }
+        }
+        
+        function renderContractorComparison(data) {
+            const resultsDiv = document.getElementById('results');
+            const contractors = data.comparison;
+            
+            // Generate comparison cards
+            const cardsHtml = contractors.map((c, index) => {
+                const rankClass = index === 0 ? 'rank-1' : (index === 1 ? 'rank-2' : (index === 2 ? 'rank-3' : ''));
+                const badgeClass = index === 0 ? 'gold' : '';
+                const medal = index === 0 ? '🥇' : (index === 1 ? '🥈' : (index === 2 ? '🥉' : `#${index + 1}`));
+                
+                return `
+                    <div class="contractor-compare-card ${rankClass}">
+                        <div class="card-header">
+                            <div class="contractor-name" title="${c.name}">${c.name}</div>
+                            <div class="rank-badge ${badgeClass}">${medal}</div>
+                        </div>
+                        <div class="compare-metrics">
+                            <div class="compare-metric ${index === 0 ? 'highlight' : ''}">
+                                <div class="metric-value">${c.win_rate}%</div>
+                                <div class="metric-label">Win Rate</div>
+                            </div>
+                            <div class="compare-metric">
+                                <div class="metric-value">${c.contracts_won}</div>
+                                <div class="metric-label">Wins</div>
+                            </div>
+                            <div class="compare-metric">
+                                <div class="metric-value">${c.contracts_bid}</div>
+                                <div class="metric-label">Bids</div>
+                            </div>
+                            <div class="compare-metric">
+                                <div class="metric-value">${c.avg_rank.toFixed(1)}</div>
+                                <div class="metric-label">Avg Rank</div>
+                            </div>
+                            <div class="compare-metric">
+                                <div class="metric-value">${c.top3_rate}%</div>
+                                <div class="metric-label">Top 3 Rate</div>
+                            </div>
+                            <div class="compare-metric">
+                                <div class="metric-value">${formatCurrencyShort(c.total_won_value)}</div>
+                                <div class="metric-label">Won Value</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            // Generate bar charts
+            const maxWinRate = Math.max(...contractors.map(c => c.win_rate));
+            const maxContracts = Math.max(...contractors.map(c => c.contracts_bid));
+            const maxValue = Math.max(...contractors.map(c => c.total_won_value));
+            
+            const winRateBars = contractors.map(c => `
+                <div class="bar-row">
+                    <div class="bar-label" title="${c.name}">${truncateName(c.name)}</div>
+                    <div class="bar-container">
+                        <div class="bar-fill win-rate" style="width: ${(c.win_rate / maxWinRate) * 100}%">
+                            ${c.win_rate}%
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+            
+            const contractsBars = contractors.map(c => `
+                <div class="bar-row">
+                    <div class="bar-label" title="${c.name}">${truncateName(c.name)}</div>
+                    <div class="bar-container">
+                        <div class="bar-fill contracts" style="width: ${(c.contracts_bid / maxContracts) * 100}%">
+                            ${c.contracts_bid}
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+            
+            const valueBars = contractors.map(c => `
+                <div class="bar-row">
+                    <div class="bar-label" title="${c.name}">${truncateName(c.name)}</div>
+                    <div class="bar-container">
+                        <div class="bar-fill value" style="width: ${maxValue > 0 ? (c.total_won_value / maxValue) * 100 : 0}%">
+                            ${formatCurrencyShort(c.total_won_value)}
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+            
+            // Head-to-head section (if exactly 2 contractors)
+            let h2hHtml = '';
+            if (contractors.length === 2) {
+                h2hHtml = `
+                    <div style="margin-top: 1rem;">
+                        <button class="btn-secondary" onclick="loadHeadToHead('${contractors[0].search_term}', '${contractors[1].search_term}')">
+                            ⚔️ View Head-to-Head Matchups
+                        </button>
+                    </div>
+                `;
+            }
+            
+            resultsDiv.innerHTML = `
+                <div class="results-header">
+                    <h3>📊 Contractor Comparison</h3>
+                    <span class="results-count">${contractors.length} contractors</span>
+                </div>
+                
+                <div class="comparison-grid">
+                    ${cardsHtml}
+                </div>
+                
+                ${h2hHtml}
+                
+                <div class="compare-chart-container">
+                    <h4>📈 Win Rate Comparison</h4>
+                    <div class="bar-chart">
+                        ${winRateBars}
+                    </div>
+                </div>
+                
+                <div class="compare-chart-container">
+                    <h4>📋 Contracts Bid</h4>
+                    <div class="bar-chart">
+                        ${contractsBars}
+                    </div>
+                </div>
+                
+                <div class="compare-chart-container">
+                    <h4>💰 Total Won Value</h4>
+                    <div class="bar-chart">
+                        ${valueBars}
+                    </div>
+                </div>
+            `;
+        }
+        
+        async function loadTopContractors(metric) {
+            const district = document.getElementById('compareDistrict').value;
+            const yearStart = document.getElementById('compareYearStart').value;
+            const yearEnd = document.getElementById('compareYearEnd').value;
+            
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '<div class="loading">Loading leaderboard</div>';
+            
+            try {
+                let url = `/api/compare/top-contractors?metric=${metric}&limit=15`;
+                if (district) url += `&district=${encodeURIComponent(district)}`;
+                if (yearStart) url += `&year_start=${yearStart}`;
+                if (yearEnd) url += `&year_end=${yearEnd}`;
+                
+                const response = await fetch(url);
+                if (!response.ok) throw new Error('Failed to load leaderboard');
+                
+                const data = await response.json();
+                
+                const metricLabels = {
+                    'wins': '🏆 Top Contractors by Wins',
+                    'win_rate': '📈 Top Contractors by Win Rate',
+                    'contracts': '📋 Most Active Contractors',
+                    'value': '💰 Top Contractors by Won Value'
+                };
+                
+                const tableRows = data.contractors.map((c, index) => {
+                    const rankClass = index < 3 ? `rank-${index + 1}` : '';
+                    const medal = index === 0 ? '🥇' : (index === 1 ? '🥈' : (index === 2 ? '🥉' : index + 1));
+                    return `
+                        <tr>
+                            <td class="rank-col ${rankClass}">${medal}</td>
+                            <td>
+                                <a href="#" onclick="searchContractorDirect('${c.bidder_name}'); return false;">
+                                    ${c.bidder_name}
+                                </a>
+                            </td>
+                            <td class="number">${c.contracts_won}</td>
+                            <td class="number">${c.win_rate}%</td>
+                            <td class="number">${c.contracts_bid}</td>
+                            <td class="number">${c.avg_rank}</td>
+                            <td class="number">${formatCurrencyShort(c.total_won_value)}</td>
+                        </tr>
+                    `;
+                }).join('');
+                
+                resultsDiv.innerHTML = `
+                    <div class="results-header">
+                        <h3>${metricLabels[metric] || 'Leaderboard'}</h3>
+                        <span class="results-count">${data.contractors.length} contractors</span>
+                    </div>
+                    <table class="leaderboard-table">
+                        <thead>
+                            <tr>
+                                <th></th>
+                                <th>Contractor</th>
+                                <th class="number">Wins</th>
+                                <th class="number">Win Rate</th>
+                                <th class="number">Bids</th>
+                                <th class="number">Avg Rank</th>
+                                <th class="number">Won Value</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${tableRows}
+                        </tbody>
+                    </table>
+                    <p style="margin-top: 1rem; color: #666; font-size: 0.85rem;">
+                        💡 Click a contractor name to view their full bidding history, or enter multiple names above to compare side-by-side.
+                    </p>
+                `;
+                
+            } catch (error) {
+                resultsDiv.innerHTML = `<div class="error">Error: ${error.message}</div>`;
+            }
+        }
+        
+        async function loadHeadToHead(contractor1, contractor2) {
+            const yearStart = document.getElementById('compareYearStart').value;
+            const yearEnd = document.getElementById('compareYearEnd').value;
+            
+            const resultsDiv = document.getElementById('results');
+            const existingContent = resultsDiv.innerHTML;
+            
+            // Add loading indicator below existing content
+            resultsDiv.innerHTML += '<div class="loading" id="h2hLoading">Loading head-to-head data</div>';
+            
+            try {
+                let url = `/api/compare/head-to-head?contractor1=${encodeURIComponent(contractor1)}&contractor2=${encodeURIComponent(contractor2)}`;
+                if (yearStart) url += `&year_start=${yearStart}`;
+                if (yearEnd) url += `&year_end=${yearEnd}`;
+                
+                const response = await fetch(url);
+                if (!response.ok) throw new Error('Failed to load head-to-head data');
+                
+                const data = await response.json();
+                
+                // Remove loading indicator
+                document.getElementById('h2hLoading')?.remove();
+                
+                if (data.shared_contracts === 0) {
+                    resultsDiv.innerHTML += `
+                        <div class="head-to-head-box" style="background: #f8f9fa; color: #666;">
+                            <h4>⚔️ Head-to-Head</h4>
+                            <p>No contracts found where both contractors bid against each other.</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                const h2h = data.head_to_head;
+                const c1Total = h2h.contractor1_wins + h2h.contractor1_ranked_higher;
+                const c2Total = h2h.contractor2_wins + h2h.contractor2_ranked_higher;
+                
+                let contractsHtml = '';
+                if (data.contracts && data.contracts.length > 0) {
+                    contractsHtml = `
+                        <div class="compare-chart-container" style="margin-top: 1rem;">
+                            <h4>📋 Shared Contracts (${data.contracts.length})</h4>
+                            <table class="data-table" style="font-size: 0.85rem;">
+                                <thead>
+                                    <tr>
+                                        <th>Contract</th>
+                                        <th>Date</th>
+                                        <th>County</th>
+                                        <th class="number">${truncateName(contractor1)}</th>
+                                        <th class="number">${truncateName(contractor2)}</th>
+                                        <th>Winner</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${data.contracts.slice(0, 10).map(c => {
+                                        const b1 = c.bids.find(b => contractor1.toLowerCase().split(' ').some(part => b.bidder_name.toLowerCase().includes(part)));
+                                        const b2 = c.bids.find(b => contractor2.toLowerCase().split(' ').some(part => b.bidder_name.toLowerCase().includes(part)));
+                                        const winner = c.bids.find(b => b.is_winner === 'Y');
+                                        return `
+                                            <tr>
+                                                <td><a href="#" onclick="searchContractDirect('${c.contract_number}'); return false;">${c.contract_number}</a></td>
+                                                <td>${c.letting_date}</td>
+                                                <td>${c.county || ''}</td>
+                                                <td class="number">#${b1?.bidder_rank || '-'}</td>
+                                                <td class="number">#${b2?.bidder_rank || '-'}</td>
+                                                <td>${winner ? truncateName(winner.bidder_name) : '-'}</td>
+                                            </tr>
+                                        `;
+                                    }).join('')}
+                                </tbody>
+                            </table>
+                            ${data.contracts.length > 10 ? `<p style="color: #666; font-size: 0.8rem; margin-top: 0.5rem;">Showing 10 of ${data.contracts.length} shared contracts</p>` : ''}
+                        </div>
+                    `;
+                }
+                
+                resultsDiv.innerHTML += `
+                    <div class="head-to-head-box">
+                        <h4>⚔️ Head-to-Head: ${data.shared_contracts} Shared Contracts</h4>
+                        <div class="head-to-head-score">
+                            <div class="h2h-side">
+                                <div class="h2h-name">${truncateName(contractor1)}</div>
+                                <div class="h2h-wins">${h2h.contractor1_wins}</div>
+                                <div style="font-size: 0.75rem; opacity: 0.7;">wins</div>
+                            </div>
+                            <div class="h2h-vs">vs</div>
+                            <div class="h2h-side">
+                                <div class="h2h-name">${truncateName(contractor2)}</div>
+                                <div class="h2h-wins">${h2h.contractor2_wins}</div>
+                                <div style="font-size: 0.75rem; opacity: 0.7;">wins</div>
+                            </div>
+                        </div>
+                        <div style="margin-top: 1rem; font-size: 0.85rem; opacity: 0.8;">
+                            Ranked higher: ${h2h.contractor1_ranked_higher} vs ${h2h.contractor2_ranked_higher}
+                        </div>
+                    </div>
+                    ${contractsHtml}
+                `;
+                
+            } catch (error) {
+                document.getElementById('h2hLoading')?.remove();
+                resultsDiv.innerHTML += `<div class="error">Error loading head-to-head: ${error.message}</div>`;
+            }
+        }
+        
+        function searchContractorDirect(name) {
+            document.getElementById('contractorInput').value = name;
+            // Switch to contractor tab
+            document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
+            document.querySelector('[data-tab="contractor"]').classList.add('active');
+            document.getElementById('contractor-tab').classList.remove('hidden');
+            searchContractor();
+        }
+        
+        function truncateName(name, maxLen = 18) {
+            if (!name) return '';
+            return name.length > maxLen ? name.substring(0, maxLen) + '...' : name;
+        }
+        
+        function formatCurrencyShort(value) {
+            if (!value || value === 0) return '$0';
+            if (value >= 1000000000) return '$' + (value / 1000000000).toFixed(1) + 'B';
+            if (value >= 1000000) return '$' + (value / 1000000).toFixed(1) + 'M';
+            if (value >= 1000) return '$' + (value / 1000).toFixed(0) + 'K';
+            return '$' + value.toFixed(0);
         }
 
         async function searchContract() {
