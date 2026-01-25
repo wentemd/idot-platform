@@ -1775,11 +1775,23 @@
                                 </div>
                                 <div class="contractor-stat">
                                     <div class="value" style="color: #dc3545;">${formatCurrency(stat.total_left_on_table)}</div>
-                                    <div class="label">Left on Table</div>
+                                    <div class="label">Total Lost By</div>
                                 </div>
                                 <div class="contractor-stat">
                                     <div class="value" style="color: #dc3545;">${stat.left_on_table_pct}%</div>
                                     <div class="label">Avg Margin Lost By</div>
+                                </div>
+                            </div>
+                            ` : ''}
+                            ${stat.contracts_won > 0 ? `
+                            <div class="contractor-stats" style="margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid #eee;">
+                                <div class="contractor-stat">
+                                    <div class="value" style="color: #28a745;">${formatCurrency(stat.total_won_by)}</div>
+                                    <div class="label">Total Won By</div>
+                                </div>
+                                <div class="contractor-stat">
+                                    <div class="value" style="color: #28a745;">${stat.won_by_pct}%</div>
+                                    <div class="label">Avg Margin Won By</div>
                                 </div>
                             </div>
                             ` : ''}
