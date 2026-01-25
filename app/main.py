@@ -1,5 +1,5 @@
 """
-IDOT Bid Intelligence Platform - Main Application
+Unit Price Intelligence Platform - Main Application
 FastAPI backend with security hardening and user authentication
 """
 from fastapi import FastAPI, Request
@@ -25,7 +25,7 @@ limiter = Limiter(key_func=get_remote_address, default_limits=["200 per minute"]
 
 # Initialize FastAPI app
 app = FastAPI(
-    title="IDOT Bid Intelligence Platform",
+    title="Unit Price Intelligence Platform",
     description="Construction bid pricing intelligence for IDOT projects",
     version="2.0.0",
     docs_url="/docs" if os.getenv("ENABLE_DOCS", "false").lower() == "true" else None,
@@ -47,6 +47,8 @@ allowed_origins = os.getenv("ALLOWED_ORIGINS", "").split(",")
 if not allowed_origins or allowed_origins == [""]:
     allowed_origins = [
         "https://idot-platform.onrender.com",
+        "https://apparentlow.io",
+        "https://www.apparentlow.io",
         "http://localhost:8000",
         "http://127.0.0.1:8000",
     ]
@@ -93,6 +95,21 @@ templates = Jinja2Templates(directory=str(BASE_DIR / "app" / "templates"))
 @app.get("/")
 async def root(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
+
+# Pricing page
+@app.get("/pricing")
+async def pricing(request: Request):
+    return templates.TemplateResponse("pricing.html", {"request": request})
+
+# Terms of Service page
+@app.get("/terms")
+async def terms(request: Request):
+    return templates.TemplateResponse("terms.html", {"request": request})
+
+# Privacy Policy page
+@app.get("/privacy")
+async def privacy(request: Request):
+    return templates.TemplateResponse("privacy.html", {"request": request})
 
 # Health check (not rate limited)
 @app.get("/health")
