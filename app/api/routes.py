@@ -1308,11 +1308,14 @@ async def analyze_contract_unbalancing(request: Request, contract_number: str):
             bidders[bidder] = {
                 'name': bidder,
                 'rank': row['bidder_rank'],
-                'is_winner': row['is_winner'] == 'Y',
+                'is_winner': row['is_winner'],
                 'items': {},
+                'quantities': {},
                 'unbalanced_items': [],
+                'items_analyzed': 0,
                 'items_unbalanced_high': 0,
                 'items_unbalanced_low': 0,
+                'total_variance_dollars': 0,
                 'unbalance_score': 0
             }
         
@@ -1329,65 +1332,74 @@ async def analyze_contract_unbalancing(request: Request, contract_number: str):
         
         items[item_num]['prices'][bidder] = row['unit_price']
         bidders[bidder]['items'][item_num] = row['unit_price']
+        bidders[bidder]['quantities'][item_num] = row['quantity']
         
         if row['is_winner'] == 'Y':
             items[item_num]['winning_price'] = row['unit_price']
     
     # Analyze each bidder's pricing vs winner
     for bidder_name, bidder_data in bidders.items():
-        if bidder_data['is_winner']:
-            continue  # Skip winner - they are the baseline
-        
         total_deviation = 0
         item_count = 0
         
         for item_num, bidder_price in bidder_data['items'].items():
             winning_price = items[item_num]['winning_price']
+            quantity = bidder_data['quantities'].get(item_num, 0)
             
             if winning_price and winning_price > 0:
                 deviation_pct = ((bidder_price - winning_price) / winning_price) * 100
+                variance_dollars = (bidder_price - winning_price) * quantity
                 item_count += 1
                 total_deviation += abs(deviation_pct)
+                bidder_data['total_variance_dollars'] += variance_dollars
                 
-                # Flag significantly unbalanced items (>25% deviation)
-                if abs(deviation_pct) > 25:
-                    direction = 'high' if deviation_pct > 0 else 'low'
+                # Flag significantly unbalanced items (>50% deviation)
+                if abs(deviation_pct) > 50:
+                    is_high = deviation_pct > 0
                     bidder_data['unbalanced_items'].append({
                         'item_number': item_num,
                         'description': items[item_num]['description'][:50] if items[item_num]['description'] else '',
-                        'quantity': items[item_num]['quantity'],
-                        'bidder_price': round(bidder_price, 2),
-                        'winning_price': round(winning_price, 2),
-                        'deviation_pct': round(deviation_pct, 1),
-                        'direction': direction
+                        'quantity': quantity,
+                        'their_price': round(bidder_price, 2),
+                        'avg_price': round(winning_price, 2),
+                        'variance_pct': round(deviation_pct, 1),
+                        'variance_dollars': round(variance_dollars, 2),
+                        'is_high': is_high
                     })
                     
-                    if deviation_pct > 0:
+                    if is_high:
                         bidder_data['items_unbalanced_high'] += 1
                     else:
                         bidder_data['items_unbalanced_low'] += 1
+        
+        bidder_data['items_analyzed'] = item_count
         
         # Calculate average unbalance score
         if item_count > 0:
             bidder_data['unbalance_score'] = round(total_deviation / item_count, 1)
         
+        # Round total variance
+        bidder_data['total_variance_dollars'] = round(bidder_data['total_variance_dollars'], 2)
+        
         # Sort unbalanced items by absolute deviation
-        bidder_data['unbalanced_items'].sort(key=lambda x: abs(x['deviation_pct']), reverse=True)
+        bidder_data['unbalanced_items'].sort(key=lambda x: abs(x['variance_pct']), reverse=True)
     
-    # Prepare response - exclude winner, sort by unbalance score
+    # Prepare response - include all bidders, sort by rank
     result = []
     for bidder_name, bidder_data in bidders.items():
-        if not bidder_data['is_winner']:
-            result.append({
-                'bidder_name': bidder_data['name'],
-                'rank': bidder_data['rank'],
-                'unbalance_score': bidder_data['unbalance_score'],
-                'items_unbalanced_high': bidder_data['items_unbalanced_high'],
-                'items_unbalanced_low': bidder_data['items_unbalanced_low'],
-                'unbalanced_items': bidder_data['unbalanced_items']
-            })
+        result.append({
+            'bidder_name': bidder_data['name'],
+            'bidder_rank': bidder_data['rank'],
+            'is_winner': bidder_data['is_winner'],
+            'items_analyzed': bidder_data['items_analyzed'],
+            'unbalance_score': bidder_data['unbalance_score'],
+            'items_unbalanced_high': bidder_data['items_unbalanced_high'],
+            'items_unbalanced_low': bidder_data['items_unbalanced_low'],
+            'total_variance_dollars': bidder_data['total_variance_dollars'],
+            'unbalanced_items': bidder_data['unbalanced_items']
+        })
     
-    result.sort(key=lambda x: x['unbalance_score'], reverse=True)
+    result.sort(key=lambda x: x['bidder_rank'])
     
     return {
         "contract_number": contract_number,
