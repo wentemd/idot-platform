@@ -18,6 +18,168 @@
             line-height: 1.6;
         }
 
+        /* ============================================ */
+        /* HERO METRICS STYLES */
+        /* ============================================ */
+        .hero-metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+            padding: 1.5rem;
+            background: linear-gradient(135deg, #1a2a3a 0%, #2c3e50 100%);
+            border-radius: 12px;
+            margin: 1.5rem 0;
+        }
+
+        .hero-tile {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 1.25rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-tile:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+        }
+
+        .hero-icon {
+            font-size: 1.75rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .hero-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .hero-value {
+            display: flex;
+            align-items: baseline;
+            gap: 0.25rem;
+        }
+
+        .value-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #ffffff;
+            line-height: 1;
+        }
+
+        .value-unit {
+            font-size: 1rem;
+            color: rgba(255, 255, 255, 0.7);
+            font-weight: 500;
+        }
+
+        .value-direction {
+            font-size: 1.25rem;
+            margin-left: 0.25rem;
+        }
+
+        .value-direction.up { color: #2ecc71; }
+        .value-direction.up::after { content: "↑"; }
+        .value-direction.down { color: #e74c3c; }
+        .value-direction.down::after { content: "↓"; }
+        .value-direction.neutral { color: #95a5a6; }
+        .value-direction.neutral::after { content: "→"; }
+
+        .hero-title {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.9);
+            margin-top: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .hero-label {
+            font-size: 0.75rem;
+            color: rgba(255, 255, 255, 0.5);
+            margin-top: 0.25rem;
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .volatility-indicator.high { color: #e74c3c !important; }
+        .volatility-indicator.medium { color: #f39c12 !important; }
+        .volatility-indicator.low { color: #2ecc71 !important; }
+
+        .hero-tile[data-tooltip]::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: -40px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 0.5rem 0.75rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s, bottom 0.2s;
+            z-index: 100;
+        }
+
+        .hero-tile:hover[data-tooltip]::after {
+            opacity: 1;
+            bottom: -35px;
+        }
+
+        .secondary-stats {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            padding: 0.75rem;
+            background: white;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            color: #666;
+            flex-wrap: wrap;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            margin-bottom: 1.5rem;
+        }
+
+        .secondary-stats strong {
+            color: #2c3e50;
+            font-weight: 600;
+        }
+
+        .hero-tile.loading .value-number {
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.4; }
+            50% { opacity: 1; }
+        }
+
+        .hero-tile:first-child {
+            background: linear-gradient(135deg, rgba(46, 204, 113, 0.15) 0%, rgba(46, 204, 113, 0.05) 100%);
+            border-color: rgba(46, 204, 113, 0.3);
+        }
+
+        .hero-tile:first-child:hover {
+            border-color: rgba(46, 204, 113, 0.5);
+        }
+        /* END HERO METRICS STYLES */
+        /* ============================================ */
+
         .header {
             background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%);
             color: white;
@@ -846,6 +1008,10 @@
                 font-size: 1.4rem;
             }
             
+            .hero-metrics-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
             .stats-grid {
                 grid-template-columns: repeat(2, 1fr);
             }
@@ -857,6 +1023,22 @@
             .header-content {
                 flex-direction: column;
                 align-items: flex-start;
+            }
+
+            .secondary-stats {
+                gap: 1rem;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .hero-metrics-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .secondary-stats {
+                flex-direction: column;
+                gap: 0.5rem;
+                text-align: center;
             }
         }
     </style>
@@ -898,12 +1080,66 @@
     </div>
 
     <div class="container">
-        <!-- Stats Dashboard -->
-        <div class="stats-grid" id="stats">
-            <div class="stat-card">
-                <div class="value">—</div>
-                <div class="label">Loading...</div>
+        <!-- Hero Metrics Dashboard -->
+        <div class="hero-metrics-grid" id="heroMetrics">
+            <!-- Tile 1: Price Trend -->
+            <div class="hero-tile loading" id="tile-price-trend">
+                <div class="hero-icon">📈</div>
+                <div class="hero-content">
+                    <div class="hero-value">
+                        <span class="value-number" id="price-trend-value">--</span>
+                        <span class="value-unit" id="price-trend-unit">%</span>
+                        <span class="value-direction" id="price-trend-direction"></span>
+                    </div>
+                    <div class="hero-title">Avg Price Trend</div>
+                    <div class="hero-label" id="price-trend-label">Loading...</div>
+                </div>
             </div>
+            
+            <!-- Tile 2: Recent Lettings -->
+            <div class="hero-tile loading" id="tile-recent-lettings">
+                <div class="hero-icon">🏗️</div>
+                <div class="hero-content">
+                    <div class="hero-value">
+                        <span class="value-number" id="recent-lettings-value">--</span>
+                    </div>
+                    <div class="hero-title">Recent Lettings</div>
+                    <div class="hero-label" id="recent-lettings-label">Last 30 Days</div>
+                </div>
+            </div>
+            
+            <!-- Tile 3: Price Volatility -->
+            <div class="hero-tile loading" id="tile-price-volatility">
+                <div class="hero-icon">🚨</div>
+                <div class="hero-content">
+                    <div class="hero-value">
+                        <span class="value-number volatility-indicator" id="price-volatility-value">--</span>
+                    </div>
+                    <div class="hero-title">Price Volatility</div>
+                    <div class="hero-label" id="price-volatility-label">Highest variance item</div>
+                </div>
+            </div>
+            
+            <!-- Tile 4: Market Activity -->
+            <div class="hero-tile loading" id="tile-market-activity">
+                <div class="hero-icon" id="market-activity-emoji">📊</div>
+                <div class="hero-content">
+                    <div class="hero-value">
+                        <span class="value-number" id="market-activity-value">--</span>
+                    </div>
+                    <div class="hero-title">Market Activity</div>
+                    <div class="hero-label" id="market-activity-label">Year comparison</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Secondary Stats (original counts) -->
+        <div class="secondary-stats" id="secondaryStats">
+            <span><strong id="stat-records">--</strong> Records</span>
+            <span><strong id="stat-contracts">--</strong> Contracts</span>
+            <span><strong id="stat-contractors">--</strong> Contractors</span>
+            <span><strong id="stat-items">--</strong> Pay Items</span>
+            <span><strong id="stat-counties">--</strong> Counties</span>
         </div>
 
         <!-- Search Section -->
@@ -1471,37 +1707,151 @@
         // ============================================================================
         // DATA LOADING
         // ============================================================================
+        // ============================================================================
+        // HERO METRICS MODULE
+        // ============================================================================
+        const HeroMetrics = {
+            async fetchMetrics() {
+                try {
+                    const response = await fetch('/api/hero/all');
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        this.renderMetrics(data.metrics);
+                    } else {
+                        console.error('Failed to fetch hero metrics:', data.error);
+                        this.showError();
+                    }
+                } catch (error) {
+                    console.error('Hero metrics fetch error:', error);
+                    this.showError();
+                }
+            },
+            
+            renderMetrics(metrics) {
+                metrics.forEach(metric => {
+                    switch (metric.metric) {
+                        case 'price_trend':
+                            this.renderPriceTrend(metric);
+                            break;
+                        case 'recent_lettings':
+                            this.renderRecentLettings(metric);
+                            break;
+                        case 'price_volatility':
+                            this.renderPriceVolatility(metric);
+                            break;
+                        case 'market_activity':
+                            this.renderMarketActivity(metric);
+                            break;
+                    }
+                });
+                
+                document.querySelectorAll('.hero-tile').forEach(tile => {
+                    tile.classList.remove('loading');
+                });
+            },
+            
+            renderPriceTrend(data) {
+                const valueEl = document.getElementById('price-trend-value');
+                const unitEl = document.getElementById('price-trend-unit');
+                const directionEl = document.getElementById('price-trend-direction');
+                const labelEl = document.getElementById('price-trend-label');
+                const tileEl = document.getElementById('tile-price-trend');
+                
+                const displayValue = data.direction === 'up' ? `+${data.value}` : (data.direction === 'down' ? `-${data.value}` : data.value);
+                valueEl.textContent = displayValue;
+                unitEl.textContent = data.unit;
+                directionEl.className = `value-direction ${data.direction}`;
+                labelEl.textContent = data.label;
+                
+                if (data.current_avg && data.prev_avg) {
+                    tileEl.setAttribute('data-tooltip', 
+                        `$${data.prev_avg.toLocaleString()} → $${data.current_avg.toLocaleString()}`
+                    );
+                }
+            },
+            
+            renderRecentLettings(data) {
+                const valueEl = document.getElementById('recent-lettings-value');
+                const labelEl = document.getElementById('recent-lettings-label');
+                const tileEl = document.getElementById('tile-recent-lettings');
+                
+                valueEl.textContent = data.value;
+                labelEl.textContent = data.label;
+                
+                if (data.details) {
+                    tileEl.setAttribute('data-tooltip', 
+                        `30d: ${data.details['30_days']} | 60d: ${data.details['60_days']} | 90d: ${data.details['90_days']}`
+                    );
+                }
+            },
+            
+            renderPriceVolatility(data) {
+                const valueEl = document.getElementById('price-volatility-value');
+                const labelEl = document.getElementById('price-volatility-label');
+                const tileEl = document.getElementById('tile-price-volatility');
+                
+                valueEl.textContent = data.value;
+                valueEl.className = `value-number volatility-indicator ${data.color || ''}`;
+                labelEl.textContent = data.label;
+                
+                if (data.details) {
+                    tileEl.setAttribute('data-tooltip', 
+                        `${data.details.item_number}: CV ${data.details.coef_variation}%`
+                    );
+                }
+            },
+            
+            renderMarketActivity(data) {
+                const valueEl = document.getElementById('market-activity-value');
+                const labelEl = document.getElementById('market-activity-label');
+                const emojiEl = document.getElementById('market-activity-emoji');
+                const tileEl = document.getElementById('tile-market-activity');
+                
+                valueEl.textContent = data.value;
+                labelEl.textContent = data.label;
+                emojiEl.textContent = data.emoji || '📊';
+                
+                if (data.details) {
+                    const direction = data.details.pct_change >= 0 ? '+' : '';
+                    tileEl.setAttribute('data-tooltip', 
+                        `${direction}${data.details.pct_change}% vs last year`
+                    );
+                }
+            },
+            
+            showError() {
+                document.querySelectorAll('.hero-tile .value-number').forEach(el => {
+                    el.textContent = '--';
+                });
+                document.querySelectorAll('.hero-tile .hero-label').forEach(el => {
+                    el.textContent = 'Unable to load';
+                });
+                document.querySelectorAll('.hero-tile').forEach(tile => {
+                    tile.classList.remove('loading');
+                });
+            }
+        };
+
         async function loadStats() {
             try {
                 const response = await fetch('/api/analytics/summary');
                 if (!response.ok) throw new Error('Failed to load stats');
                 const data = await response.json();
                 
-                document.getElementById('stats').innerHTML = `
-                    <div class="stat-card">
-                        <div class="value">${(data.total_bid_rows / 1000000).toFixed(2)}M</div>
-                        <div class="label">Bid Records</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="value">${data.unique_contracts?.toLocaleString() || '—'}</div>
-                        <div class="label">Contracts</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="value">${data.unique_contractors?.toLocaleString() || '—'}</div>
-                        <div class="label">Contractors</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="value">${data.unique_items?.toLocaleString() || '—'}</div>
-                        <div class="label">Pay Items</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="value">${data.unique_counties || '—'}</div>
-                        <div class="label">Counties</div>
-                    </div>
-                `;
+                // Update secondary stats
+                document.getElementById('stat-records').textContent = (data.total_bid_rows / 1000000).toFixed(2) + 'M';
+                document.getElementById('stat-contracts').textContent = data.unique_contracts?.toLocaleString() || '—';
+                document.getElementById('stat-contractors').textContent = data.unique_contractors?.toLocaleString() || '—';
+                document.getElementById('stat-items').textContent = data.unique_items?.toLocaleString() || '—';
+                document.getElementById('stat-counties').textContent = data.unique_counties || '—';
+                
             } catch (error) {
                 console.error('Error loading stats:', error);
             }
+            
+            // Load hero metrics
+            HeroMetrics.fetchMetrics();
         }
 
         async function loadDistricts() {
