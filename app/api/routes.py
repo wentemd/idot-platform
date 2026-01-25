@@ -1145,90 +1145,168 @@ async def price_items_from_excel(
     if year_end:
         year_clause += f" AND CAST(substr(letting_date, length(letting_date)-3) AS INTEGER) <= {year_end}"
     
+    # Check if any filters are applied
+    has_filters = bool(district_list or year_start or year_end)
+    
+    # Define highlight fill for fallback items
+    fallback_fill = PatternFill(start_color="FFFF00", end_color="FFFF00", fill_type="solid")
+    
     # Price each item
     results_summary = {
         'items_requested': len(items_to_price),
         'items_priced': 0,
         'items_not_found': 0,
+        'items_from_fallback': 0,
         'total_value': 0
     }
     
     for item in items_to_price:
-        # Query for weighted average price - WINNING BIDS ONLY
-        query = f"""
+        row_num = item['row']
+        
+        # FIRST: Always get unfiltered market average
+        market_query = """
             SELECT 
                 item_number,
                 item_description,
                 unit,
                 SUM(extension) / NULLIF(SUM(quantity), 0) as weighted_avg_price,
-                COUNT(*) as bid_count,
-                MIN(unit_price) as min_price,
-                MAX(unit_price) as max_price
+                COUNT(*) as bid_count
             FROM bids
             WHERE item_number = ?
             AND unit_price > 0
             AND quantity > 0
             AND is_winner = 'Y'
-            {district_clause}
-            {year_clause}
             GROUP BY item_number
         """
         
-        params = [item['item_number']]
-        if district_list:
-            params.extend(district_list)
+        cursor.execute(market_query, [item['item_number']])
+        market_result = cursor.fetchone()
         
-        cursor.execute(query, params)
-        result = cursor.fetchone()
+        # SECOND: If filters applied, get filtered average
+        filtered_result = None
+        if has_filters:
+            filtered_query = f"""
+                SELECT 
+                    item_number,
+                    item_description,
+                    unit,
+                    SUM(extension) / NULLIF(SUM(quantity), 0) as weighted_avg_price,
+                    COUNT(*) as bid_count
+                FROM bids
+                WHERE item_number = ?
+                AND unit_price > 0
+                AND quantity > 0
+                AND is_winner = 'Y'
+                {district_clause}
+                {year_clause}
+                GROUP BY item_number
+            """
+            
+            params = [item['item_number']]
+            if district_list:
+                params.extend(district_list)
+            
+            cursor.execute(filtered_query, params)
+            filtered_result = cursor.fetchone()
         
-        row_num = item['row']
+        # Determine which price to use
+        market_price = market_result['weighted_avg_price'] if market_result else None
+        filtered_price = filtered_result['weighted_avg_price'] if filtered_result else None
         
-        if result and result['weighted_avg_price']:
-            # Fill in the data
-            price = result['weighted_avg_price']
-            extension = price * item['quantity'] if item['quantity'] else 0
+        # Get description and unit from whatever result we have
+        description = None
+        unit = None
+        if filtered_result:
+            description = filtered_result['item_description']
+            unit = filtered_result['unit']
+        elif market_result:
+            description = market_result['item_description']
+            unit = market_result['unit']
+        
+        if market_price:
+            # Fill in description and unit
+            if not ws.cell(row=row_num, column=2).value and description:
+                ws.cell(row=row_num, column=2).value = description
             
-            # Column B: Description (if empty)
-            if not ws.cell(row=row_num, column=2).value:
-                ws.cell(row=row_num, column=2).value = result['item_description']
+            if not ws.cell(row=row_num, column=4).value and unit:
+                ws.cell(row=row_num, column=4).value = unit
             
-            # Column D: Unit (if empty)
-            if not ws.cell(row=row_num, column=4).value:
-                ws.cell(row=row_num, column=4).value = result['unit']
-            
-            # Column E: Unit Price
-            ws.cell(row=row_num, column=5).value = round(price, 2)
+            # Column E: Market Avg (always, no filters)
+            ws.cell(row=row_num, column=5).value = round(market_price, 2)
             ws.cell(row=row_num, column=5).number_format = '$#,##0.00'
             
-            # Column F: Extension
-            ws.cell(row=row_num, column=6).value = round(extension, 2)
-            ws.cell(row=row_num, column=6).number_format = '$#,##0.00'
-            
-            # Column G: Bid count (for reference)
-            ws.cell(row=row_num, column=7).value = result['bid_count']
+            if has_filters:
+                # Column F: Filtered Avg (or fallback)
+                if filtered_price:
+                    # Use filtered price
+                    used_price = filtered_price
+                    ws.cell(row=row_num, column=6).value = round(filtered_price, 2)
+                    ws.cell(row=row_num, column=8).value = filtered_result['bid_count']
+                    ws.cell(row=row_num, column=9).value = "Filtered"
+                else:
+                    # Fallback to market price - highlight yellow
+                    used_price = market_price
+                    ws.cell(row=row_num, column=6).value = round(market_price, 2)
+                    ws.cell(row=row_num, column=6).fill = fallback_fill
+                    ws.cell(row=row_num, column=8).value = market_result['bid_count']
+                    ws.cell(row=row_num, column=9).value = "Market (No Filter Data)"
+                    ws.cell(row=row_num, column=9).fill = fallback_fill
+                    results_summary['items_from_fallback'] += 1
+                
+                ws.cell(row=row_num, column=6).number_format = '$#,##0.00'
+                
+                # Column G: Extension (using filtered/fallback price)
+                extension = used_price * item['quantity'] if item['quantity'] else 0
+                ws.cell(row=row_num, column=7).value = round(extension, 2)
+                ws.cell(row=row_num, column=7).number_format = '$#,##0.00'
+                if not filtered_price:
+                    ws.cell(row=row_num, column=7).fill = fallback_fill
+            else:
+                # No filters - just use market price
+                used_price = market_price
+                extension = used_price * item['quantity'] if item['quantity'] else 0
+                
+                # Column F: Same as market (no filters)
+                ws.cell(row=row_num, column=6).value = round(market_price, 2)
+                ws.cell(row=row_num, column=6).number_format = '$#,##0.00'
+                
+                # Column G: Extension
+                ws.cell(row=row_num, column=7).value = round(extension, 2)
+                ws.cell(row=row_num, column=7).number_format = '$#,##0.00'
+                
+                # Column H: Bid count
+                ws.cell(row=row_num, column=8).value = market_result['bid_count']
+                
+                # Column I: Source
+                ws.cell(row=row_num, column=9).value = "Market"
             
             results_summary['items_priced'] += 1
             results_summary['total_value'] += extension
         else:
-            # Item not found - mark it
+            # Item not found at all
             ws.cell(row=row_num, column=5).value = "NOT FOUND"
             ws.cell(row=row_num, column=5).font = Font(color="FF0000", italic=True)
+            ws.cell(row=row_num, column=6).value = "NOT FOUND"
+            ws.cell(row=row_num, column=6).font = Font(color="FF0000", italic=True)
             results_summary['items_not_found'] += 1
     
     conn.close()
     
-    # Add/update headers if they exist
-    if header_row > 0:
-        headers = ['Item Number', 'Description', 'Quantity', 'Unit', 'Unit Price', 'Extension', 'Bid Count']
-        header_fill = PatternFill(start_color="1E3A5F", end_color="1E3A5F", fill_type="solid")
-        header_font = Font(color="FFFFFF", bold=True)
-        
-        for col, header in enumerate(headers, 1):
-            cell = ws.cell(row=1, column=col)
-            cell.value = header
-            cell.fill = header_fill
-            cell.font = header_font
-            cell.alignment = Alignment(horizontal='center')
+    # Add/update headers
+    if has_filters:
+        headers = ['Item Number', 'Description', 'Quantity', 'Unit', 'Market Avg', 'Filtered Avg', 'Extension', 'Bid Count', 'Source']
+    else:
+        headers = ['Item Number', 'Description', 'Quantity', 'Unit', 'Market Avg', 'Unit Price', 'Extension', 'Bid Count', 'Source']
+    
+    header_fill = PatternFill(start_color="1E3A5F", end_color="1E3A5F", fill_type="solid")
+    header_font = Font(color="FFFFFF", bold=True)
+    
+    for col, header in enumerate(headers, 1):
+        cell = ws.cell(row=1, column=col)
+        cell.value = header
+        cell.fill = header_fill
+        cell.font = header_font
+        cell.alignment = Alignment(horizontal='center')
     
     # Add summary at bottom
     summary_row = ws.max_row + 2
@@ -1244,26 +1322,37 @@ async def price_items_from_excel(
     ws.cell(row=summary_row + 3, column=1).value = "Items Not Found:"
     ws.cell(row=summary_row + 3, column=2).value = results_summary['items_not_found']
     
-    ws.cell(row=summary_row + 4, column=1).value = "Total Estimated Value:"
-    ws.cell(row=summary_row + 4, column=2).value = results_summary['total_value']
-    ws.cell(row=summary_row + 4, column=2).number_format = '$#,##0.00'
+    if has_filters:
+        ws.cell(row=summary_row + 4, column=1).value = "Items Using Market Fallback:"
+        ws.cell(row=summary_row + 4, column=2).value = results_summary['items_from_fallback']
+        ws.cell(row=summary_row + 4, column=2).fill = fallback_fill
+        
+        ws.cell(row=summary_row + 5, column=1).value = "Total Estimated Value:"
+        ws.cell(row=summary_row + 5, column=2).value = results_summary['total_value']
+        ws.cell(row=summary_row + 5, column=2).number_format = '$#,##0.00'
+        
+        ws.cell(row=summary_row + 7, column=1).value = "Filters Applied:"
+        ws.cell(row=summary_row + 7, column=1).font = Font(bold=True)
+        if district_list:
+            ws.cell(row=summary_row + 8, column=1).value = f"Districts: {', '.join(district_list)}"
+        if year_start or year_end:
+            year_range = f"{year_start or 'Any'} - {year_end or 'Any'}"
+            ws.cell(row=summary_row + 9, column=1).value = f"Years: {year_range}"
+    else:
+        ws.cell(row=summary_row + 4, column=1).value = "Total Estimated Value:"
+        ws.cell(row=summary_row + 4, column=2).value = results_summary['total_value']
+        ws.cell(row=summary_row + 4, column=2).number_format = '$#,##0.00'
     
-    if district_list:
-        ws.cell(row=summary_row + 5, column=1).value = "Districts Used:"
-        ws.cell(row=summary_row + 5, column=2).value = ', '.join(district_list)
-    
-    if year_start or year_end:
-        ws.cell(row=summary_row + 6, column=1).value = "Year Range:"
-        ws.cell(row=summary_row + 6, column=2).value = f"{year_start or 'All'} - {year_end or 'All'}"
-    
-    # Adjust column widths
+    # Adjust column widths for new layout
     ws.column_dimensions['A'].width = 15
     ws.column_dimensions['B'].width = 40
     ws.column_dimensions['C'].width = 12
     ws.column_dimensions['D'].width = 10
     ws.column_dimensions['E'].width = 14
     ws.column_dimensions['F'].width = 14
-    ws.column_dimensions['G'].width = 12
+    ws.column_dimensions['G'].width = 14
+    ws.column_dimensions['H'].width = 12
+    ws.column_dimensions['I'].width = 22
     
     # Save to bytes
     output = io.BytesIO()
@@ -1305,7 +1394,7 @@ async def get_estimator_template(request: Request):
     ws.title = "Estimate Items"
     
     # Headers
-    headers = ['Item Number', 'Description', 'Quantity', 'Unit', 'Unit Price', 'Extension', 'Bid Count']
+    headers = ['Item Number', 'Description', 'Quantity', 'Unit', 'Market Avg', 'Filtered Avg', 'Extension', 'Bid Count', 'Source']
     header_fill = PatternFill(start_color="1E3A5F", end_color="1E3A5F", fill_type="solid")
     header_font = Font(color="FFFFFF", bold=True)
     
@@ -1334,6 +1423,8 @@ async def get_estimator_template(request: Request):
     ws.cell(row=9, column=1).value = "2. Enter quantities in Column C"
     ws.cell(row=10, column=1).value = "3. Upload this file to get weighted average prices"
     ws.cell(row=11, column=1).value = "4. Maximum 300 items per upload"
+    ws.cell(row=12, column=1).value = "5. Market Avg = all data, Filtered Avg = with your filters"
+    ws.cell(row=13, column=1).value = "6. Yellow highlighted cells = no filtered data, using market avg"
     
     # Adjust column widths
     ws.column_dimensions['A'].width = 15
@@ -1342,7 +1433,9 @@ async def get_estimator_template(request: Request):
     ws.column_dimensions['D'].width = 10
     ws.column_dimensions['E'].width = 14
     ws.column_dimensions['F'].width = 14
-    ws.column_dimensions['G'].width = 12
+    ws.column_dimensions['G'].width = 14
+    ws.column_dimensions['H'].width = 12
+    ws.column_dimensions['I'].width = 22
     
     # Save to bytes
     output = io.BytesIO()
