@@ -1427,6 +1427,7 @@ async def analyze_contractor_unbalancing(request: Request, contractor_name: str)
             b1.item_description,
             b1.unit_price as bidder_price,
             b1.quantity,
+            b1.is_winner,
             b2.unit_price as winning_price
         FROM bids b1
         LEFT JOIN bids b2 ON b1.contract_number = b2.contract_number 
@@ -1467,6 +1468,7 @@ async def analyze_contractor_unbalancing(request: Request, contractor_name: str)
                 contracts[contract] = {
                     'contract_number': contract,
                     'letting_date': row['letting_date'],
+                    'is_winner': row['is_winner'],
                     'items_analyzed': 0,
                     'items_unbalanced': 0,
                     'total_deviation': 0,
@@ -1529,6 +1531,10 @@ async def analyze_contractor_unbalancing(request: Request, contractor_name: str)
     avg_unbalance_score = round(sum(all_deviations) / len(all_deviations), 1) if all_deviations else 0
     unbalance_tendency = 'high' if total_high > total_low * 1.5 else ('low' if total_low > total_high * 1.5 else 'mixed')
     
+    # Add total_variance field to commonly_unbalanced items (frontend expects this)
+    for item in commonly_unbalanced:
+        item['total_variance'] = item.get('avg_deviation', 0)
+    
     return {
         "contractor_name": contractor_name,
         "contracts_analyzed": len(contracts),
@@ -1537,5 +1543,5 @@ async def analyze_contractor_unbalancing(request: Request, contractor_name: str)
         "total_items_priced_high": total_high,
         "total_items_priced_low": total_low,
         "commonly_unbalanced_items": commonly_unbalanced[:20],
-        "contracts": contract_list[:50]
+        "contract_history": contract_list[:50]
     }
