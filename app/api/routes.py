@@ -1052,6 +1052,14 @@ async def price_items_from_excel(
             for row_idx in range(xls_sheet.nrows):
                 for col_idx in range(xls_sheet.ncols):
                     cell_value = xls_sheet.cell_value(row_idx, col_idx)
+                    cell_type = xls_sheet.cell_type(row_idx, col_idx)
+                    
+                    # xlrd cell types: 0=empty, 1=text, 2=number, 3=date, 4=boolean, 5=error
+                    # For column A (item numbers), convert numbers to strings without decimals
+                    if col_idx == 0 and cell_type == 2 and cell_value:  # Number type in column A
+                        # Convert float to int string (e.g., 20200100.0 -> "20200100")
+                        cell_value = str(int(cell_value))
+                    
                     ws.cell(row=row_idx + 1, column=col_idx + 1, value=cell_value)
         else:
             # New Excel format (.xlsx)
@@ -1083,8 +1091,21 @@ async def price_items_from_excel(
     while row <= ws.max_row and len(items_to_price) < 300:
         item_num = ws.cell(row=row, column=1).value
         if item_num:
-            item_num = str(item_num).strip()
+            # Handle various formats: floats, ints, strings
+            if isinstance(item_num, float):
+                # Convert float to int string (e.g., 20200100.0 -> "20200100")
+                item_num = str(int(item_num))
+            else:
+                item_num = str(item_num).strip()
+            
+            # Remove any trailing .0 that might be left
+            if item_num.endswith('.0'):
+                item_num = item_num[:-2]
+            
             if item_num:
+                # Ensure uppercase for consistent matching
+                item_num = item_num.upper()
+                
                 quantity = ws.cell(row=row, column=3).value
                 try:
                     quantity = float(quantity) if quantity else 0
